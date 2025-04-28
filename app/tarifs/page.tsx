@@ -1,61 +1,91 @@
 import React from "react";
+import { getPricingData, type PriceData } from "../actions";
+import { UIPricingPlan } from "./types";
+import PricingCalculator from "@/components/pricing-calculator";
 
-// Static pricing data
-const pricingData = [
-  {
-    id: 1,
-    name: "Journée",
-    duration: "1 jour",
-    price: 15.99,
-    features: [
-      "Parking sécurisé 24h/24",
-      "Navette gratuite",
-      "Réservation modifiable",
-    ],
-  },
-  {
-    id: 2,
-    name: "Week-end",
-    duration: "2-3 jours",
-    price: 39.99,
-    features: [
-      "Parking sécurisé 24h/24",
-      "Navette gratuite",
-      "Réservation modifiable",
-      "Assistance prioritaire",
-    ],
-    popular: true,
-  },
-  {
-    id: 3,
-    name: "Semaine",
-    duration: "4-7 jours",
-    price: 69.99,
-    features: [
-      "Parking sécurisé 24h/24",
-      "Navette gratuite",
-      "Réservation modifiable",
-      "Assistance prioritaire",
-      "Place de parking préférentielle",
-    ],
-  },
-  {
-    id: 4,
-    name: "Longue durée",
-    duration: "8-14 jours",
-    price: 99.99,
-    features: [
-      "Parking sécurisé 24h/24",
-      "Navette gratuite",
-      "Réservation modifiable",
-      "Assistance prioritaire",
-      "Place de parking préférentielle",
-      "Vérification hebdomadaire du véhicule",
-    ],
-  },
-];
+// Function to transform pricing data from database to UI format
+const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
+  // Default features for all plans
+  const baseFeatures = [
+    "Parking sécurisé 24h/24",
+    "Navette gratuite",
+    "Réservation modifiable",
+  ];
 
-// Additional services
+  // If no pricing data is available, return default plans
+  if (!prices || prices.length === 0) {
+    return [
+      {
+        id: "1",
+        name: "Forfait Standard",
+        duration: "1-4 jours",
+        price: 39.99,
+        features: baseFeatures,
+        base_duration_days: 4,
+        additional_day_price: 10,
+        late_fee: 15,
+        popular: false,
+      },
+    ];
+  }
+
+  // Sort prices by base_duration_days to ensure logical order
+  const sortedPrices = [...prices].sort(
+    (a, b) => a.base_duration_days - b.base_duration_days
+  );
+
+  return sortedPrices.map((price, index) => {
+    // Determine plan name and duration based on base_duration_days
+    let name, duration;
+    let additionalFeatures = [];
+    let popular = false;
+
+    if (price.base_duration_days <= 1) {
+      name = "Journée";
+      duration = "1 jour";
+    } else if (price.base_duration_days <= 3) {
+      name = "Week-end";
+      duration = "2-3 jours";
+      additionalFeatures.push("Assistance prioritaire");
+      popular = true;
+    } else if (price.base_duration_days <= 7) {
+      name = "Semaine";
+      duration = `1-${price.base_duration_days} jours`;
+      additionalFeatures.push(
+        "Assistance prioritaire",
+        "Place de parking préférentielle"
+      );
+    } else {
+      name = "Longue durée";
+      duration = `${price.base_duration_days}+ jours`;
+      additionalFeatures.push(
+        "Assistance prioritaire",
+        "Place de parking préférentielle",
+        "Vérification hebdomadaire du véhicule"
+      );
+    }
+
+    return {
+      id: price.id,
+      name,
+      duration,
+      price: price.base_price,
+      features: [...baseFeatures, ...additionalFeatures],
+      base_duration_days: price.base_duration_days,
+      additional_day_price: price.additional_day_price,
+      late_fee: price.late_fee,
+      popular,
+    };
+  });
+};
+
+// Fetch pricing data from the database
+async function getPricingPlans() {
+  const prices = await getPricingData();
+  return transformPricingData(prices);
+}
+
+// Additional services - these could also come from the database in a future update
 const additionalServices = [
   {
     id: 1,
@@ -84,7 +114,8 @@ const additionalServices = [
   },
 ];
 
-export default function TarifsPage() {
+export default async function TarifsPage() {
+  const pricingData = await getPricingPlans();
   return (
     <div className="flex flex-col gap-16">
       {/* Hero Section */}
@@ -132,6 +163,13 @@ export default function TarifsPage() {
                 </p>
                 <div className="flex items-baseline mb-6">
                   <span className="text-3xl font-bold">{plan.price}€</span>
+                  <span className="text-sm text-muted-foreground ml-2">
+                    pour {plan.base_duration_days} jours
+                  </span>
+                </div>
+                <div className="text-sm text-muted-foreground mb-4">
+                  <p>+{plan.additional_day_price}€ par jour supplémentaire</p>
+                  <p>Frais de retard: {plan.late_fee}€</p>
                 </div>
                 <ul className="space-y-3 mb-6">
                   {plan.features.map((feature, index) => (
@@ -206,108 +244,7 @@ export default function TarifsPage() {
 
       {/* Pricing Calculator */}
       <section className="container mx-auto px-4">
-        <div className="bg-card p-8 rounded-xl shadow-md">
-          <h2 className="text-2xl font-bold mb-6">Calculateur de tarif</h2>
-          <p className="text-muted-foreground mb-8">
-            Pour obtenir un devis précis, veuillez utiliser notre calculateur de
-            tarif en ligne. Entrez simplement vos dates d'arrivée et de départ
-            pour connaître le prix exact de votre stationnement.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <div className="mb-4">
-                <label
-                  htmlFor="arrival-date"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Date d'arrivée
-                </label>
-                <input
-                  type="date"
-                  id="arrival-date"
-                  className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="arrival-time"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Heure d'arrivée
-                </label>
-                <select
-                  id="arrival-time"
-                  className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  <option value="">Sélectionnez une heure</option>
-                  <option value="08:00">08:00</option>
-                  <option value="09:00">09:00</option>
-                  <option value="10:00">10:00</option>
-                  <option value="11:00">11:00</option>
-                  <option value="12:00">12:00</option>
-                  <option value="13:00">13:00</option>
-                  <option value="14:00">14:00</option>
-                  <option value="15:00">15:00</option>
-                  <option value="16:00">16:00</option>
-                  <option value="17:00">17:00</option>
-                  <option value="18:00">18:00</option>
-                  <option value="19:00">19:00</option>
-                  <option value="20:00">20:00</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-4">
-                <label
-                  htmlFor="departure-date"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Date de départ
-                </label>
-                <input
-                  type="date"
-                  id="departure-date"
-                  className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  htmlFor="departure-time"
-                  className="block text-sm font-medium mb-1"
-                >
-                  Heure de départ
-                </label>
-                <select
-                  id="departure-time"
-                  className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-                >
-                  <option value="">Sélectionnez une heure</option>
-                  <option value="08:00">08:00</option>
-                  <option value="09:00">09:00</option>
-                  <option value="10:00">10:00</option>
-                  <option value="11:00">11:00</option>
-                  <option value="12:00">12:00</option>
-                  <option value="13:00">13:00</option>
-                  <option value="14:00">14:00</option>
-                  <option value="15:00">15:00</option>
-                  <option value="16:00">16:00</option>
-                  <option value="17:00">17:00</option>
-                  <option value="18:00">18:00</option>
-                  <option value="19:00">19:00</option>
-                  <option value="20:00">20:00</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-6">
-            <button className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-6 py-3 text-base font-medium shadow-sm hover:bg-primary/90 transition-colors">
-              Calculer le tarif
-            </button>
-          </div>
-        </div>
+        <PricingCalculator pricingPlans={pricingData} />
       </section>
 
       {/* FAQ Section */}

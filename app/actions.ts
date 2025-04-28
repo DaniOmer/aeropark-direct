@@ -187,3 +187,32 @@ export const signOutAction = async () => {
   await supabase.auth.signOut();
   return redirect("/sign-in");
 };
+
+// Types for pricing data
+export type PriceData = {
+  id: string;
+  parking_lot_id: string;
+  base_price: number;
+  base_duration_days: number;
+  additional_day_price: number;
+  late_fee: number;
+  currency: string;
+  is_active: boolean;
+};
+
+// Fetch pricing data from the database
+export const getPricingData = async (): Promise<PriceData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("prices")
+    .select("*")
+    .eq("is_active", true);
+
+  if (error) {
+    console.error("Error fetching pricing data:", error);
+    return [];
+  }
+
+  return data || [];
+};
