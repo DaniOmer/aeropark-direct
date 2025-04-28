@@ -1,12 +1,9 @@
-import DeployButton from "@/components/deploy-button";
-import { EnvVarWarning } from "@/components/env-var-warning";
-import HeaderAuth from "@/components/header-auth";
 import { ThemeSwitcher } from "@/components/theme-switcher";
-import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
+import Header from "@/components/header";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -40,42 +37,7 @@ export default function RootLayout({
         >
           <main className="min-h-screen flex flex-col items-center">
             <div className="flex-1 w-full flex flex-col gap-20 items-center">
-              <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
-                <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">
-                  <div className="flex gap-5 items-center">
-                    <Link href={"/"} className="font-bold text-lg text-primary">
-                      ParkAero Direct
-                    </Link>
-                    <div className="hidden md:flex gap-6 ml-8">
-                      <Link
-                        href={"/"}
-                        className="hover:text-primary transition-colors"
-                      >
-                        Accueil
-                      </Link>
-                      <Link
-                        href={"#"}
-                        className="hover:text-primary transition-colors"
-                      >
-                        Nos services
-                      </Link>
-                      <Link
-                        href={"#"}
-                        className="hover:text-primary transition-colors"
-                      >
-                        Tarifs
-                      </Link>
-                      <Link
-                        href={"#"}
-                        className="hover:text-primary transition-colors"
-                      >
-                        Contact
-                      </Link>
-                    </div>
-                  </div>
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
-                </div>
-              </nav>
+              <Header />
               <div className="flex max-w-screen-xl flex-col gap-20 container p-5">
                 {children}
               </div>
@@ -114,7 +76,7 @@ export default function RootLayout({
                         </li>
                         <li>
                           <Link
-                            href="#"
+                            href="/services"
                             className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Nos services
@@ -122,10 +84,18 @@ export default function RootLayout({
                         </li>
                         <li>
                           <Link
-                            href="#"
+                            href="/tarifs"
                             className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Tarifs
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href="/contact"
+                            className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                          >
+                            Contact
                           </Link>
                         </li>
                       </ul>
