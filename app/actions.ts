@@ -5,7 +5,15 @@ import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-export const signUpAction = async (formData: FormData) => {
+// Define a return type for the action
+export type SignUpActionResult = {
+  error?: string;
+  field?: string; // Optional field to associate the error with
+} | void; // Return void on success redirect
+
+export const signUpAction = async (
+  formData: FormData
+): Promise<SignUpActionResult> => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const firstName = formData.get("first_name")?.toString();
@@ -15,7 +23,9 @@ export const signUpAction = async (formData: FormData) => {
   const origin = (await headers()).get("origin");
 
   if (!email || !password || !firstName || !lastName || !phone) {
-    return encodedRedirect("error", "/sign-up", "Tous les champs sont requis");
+    // Return an error object instead of redirecting
+    return { error: "Tous les champs sont requis" };
+    // return encodedRedirect("error", "/sign-up", "Tous les champs sont requis");
   }
 
   // Vérifier si l'email existe déjà dans la table users
@@ -27,7 +37,9 @@ export const signUpAction = async (formData: FormData) => {
 
   if (existingUser) {
     console.log("Cet email est déjà utilisé");
-    return encodedRedirect("error", "/sign-up", "Cet email est déjà utilisé");
+    // Return an error object with the specific field
+    return { error: "Cet email est déjà utilisé", field: "email" };
+    // return encodedRedirect("error", "/sign-up", "Cet email est déjà utilisé");
   }
 
   // Créer l'utilisateur dans Supabase Auth
@@ -47,7 +59,9 @@ export const signUpAction = async (formData: FormData) => {
 
   if (authError) {
     console.error(authError.code + " " + authError.message);
-    return encodedRedirect("error", "/sign-up", authError.message);
+    // Return a general error object
+    return { error: authError.message };
+    // return encodedRedirect("error", "/sign-up", authError.message);
   }
 
   // Créer l'utilisateur dans la table users
@@ -63,17 +77,19 @@ export const signUpAction = async (formData: FormData) => {
   if (dbError) {
     console.error("Database error: ", dbError.message);
     // Si l'insertion échoue, on essaie de supprimer l'utilisateur créé dans Auth
-    await supabase.auth.admin.deleteUser(authData.user?.id || "");
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Erreur lors de la création du compte: " + dbError.message
-    );
+    if (authData.user?.id) {
+      await supabase.auth.admin.deleteUser(authData.user.id);
+    }
+    // Return a general error object
+    return {
+      error: "Erreur lors de la création du compte: " + dbError.message,
+    };
   }
 
+  // Only redirect on successful creation and insertion
   return encodedRedirect(
     "success",
-    "/sign-up",
+    "/sign-up", // Redirect to sign-up page to show success message
     "Merci pour votre inscription ! Veuillez vérifier votre email pour confirmer votre compte."
   );
 };

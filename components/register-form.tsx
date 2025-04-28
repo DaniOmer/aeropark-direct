@@ -6,9 +6,9 @@ import * as yup from "yup";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/submit-button";
-import { signUpAction } from "@/app/actions";
+import { signUpAction, SignUpActionResult } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 const schema = yup.object().shape({
   email: yup.string().email("Email invalide").required("Email requis"),
@@ -32,6 +32,7 @@ interface RegisterFormProps {
 
 export function RegisterForm({ message }: RegisterFormProps) {
   const [formError, setFormError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const {
     register,
     handleSubmit,
@@ -66,11 +67,39 @@ export function RegisterForm({ message }: RegisterFormProps) {
     }
   }, [message, setError]);
 
+  // Reintroduce onSubmit to handle the action call and error display
+  const onSubmit = async (data: FormData) => {
+    setFormError(null); // Clear previous errors
+    startTransition(async () => {
+      // Wrap action call in transition
+      const formData = new FormData();
+      Object.entries(data).forEach(([key, value]) => {
+        formData.append(key, value.toString());
+      });
+
+      const result: SignUpActionResult = await signUpAction(formData);
+
+      if (result?.error) {
+        if (result.field && result.field === "email") {
+          setError("email", {
+            type: "server",
+            message: result.error,
+          });
+        } else {
+          // Set general form error for other cases
+          setFormError(result.error);
+          // Or use setError("root", { type: "server", message: result.error });
+        }
+      }
+      // Success case is handled by the redirect in signUpAction
+    });
+  };
+
   return (
     <form
       id="signup-form"
       className="flex flex-col min-w-64 max-w-64 mx-auto"
-      action={signUpAction}
+      onSubmit={handleSubmit(onSubmit)}
     >
       <h1 className="text-2xl font-medium">Sign up</h1>
       <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
@@ -141,9 +170,11 @@ export function RegisterForm({ message }: RegisterFormProps) {
           )}
         </div>
 
-        <SubmitButton pendingText="Inscription...">S'inscrire</SubmitButton>
+        <SubmitButton pending={isPending} pendingText="Inscription...">
+          S'inscrire
+        </SubmitButton>
         {formError && <p className="text-red-500 text-sm mt-2">{formError}</p>}
-        {message && <FormMessage message={message} />}
+        {message && "success" in message && <FormMessage message={message} />}
       </div>
     </form>
   );
