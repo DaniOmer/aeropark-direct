@@ -1,44 +1,39 @@
-import NextLogo from "./next-logo";
-import SupabaseLogo from "./supabase-logo";
+import Link from "next/link";
+import { Button } from "./ui/button";
 
-export default function Header() {
+export default function Hero() {
   return (
-    <div className="flex flex-col gap-16 items-center">
-      <div className="flex gap-8 justify-center items-center">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <SupabaseLogo />
-        </a>
-        <span className="border-l rotate-45 h-6" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
+    <div className="relative w-full h-[600px] flex items-center justify-center overflow-hidden">
+      {/* Background image with overlay */}
+      <div
+        className="absolute inset-0 bg-cover bg-center z-0"
+        style={{
+          backgroundImage: "url('/hero-background.jpg')",
+          backgroundPosition: "center 30%",
+        }}
+      >
+        <div className="absolute inset-0 bg-black/40 z-0"></div>
       </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
-        The fastest way to build apps with{" "}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{" "}
-        and{" "}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+          Parking Aéropark Direct
+        </h1>
+        <p className="text-xl md:text-2xl text-white mb-8 max-w-3xl mx-auto">
+          Réservez votre parking situé à moins de 10 minutes de l&apos;aéroport
+          avec navette gratuite 24h/24 – 7j/7.
+        </p>
+        <div className="mt-8">
+          <Button
+            asChild
+            size="lg"
+            className="bg-primary hover:bg-primary/90 text-white font-medium px-8 py-6 text-lg rounded-md"
+          >
+            <Link href="#reservation">Réserver maintenant</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
