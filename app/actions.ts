@@ -8,35 +8,74 @@ import { redirect } from "next/navigation";
 export const signUpAction = async (formData: FormData) => {
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
+  const firstName = formData.get("first_name")?.toString();
+  const lastName = formData.get("last_name")?.toString();
+  const phone = formData.get("phone")?.toString();
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  if (!email || !password) {
-    return encodedRedirect(
-      "error",
-      "/sign-up",
-      "Email and password are required",
-    );
+  if (!email || !password || !firstName || !lastName || !phone) {
+    return encodedRedirect("error", "/sign-up", "Tous les champs sont requis");
   }
 
-  const { error } = await supabase.auth.signUp({
+  // Vérifier si l'email existe déjà dans la table users
+  const { data: existingUser } = await supabase
+    .from("users")
+    .select("email")
+    .eq("email", email)
+    .single();
+
+  if (existingUser) {
+    console.log("Cet email est déjà utilisé");
+    return encodedRedirect("error", "/sign-up", "Cet email est déjà utilisé");
+  }
+
+  // Créer l'utilisateur dans Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        phone: phone,
+        role: "user",
+      },
     },
   });
 
-  if (error) {
-    console.error(error.code + " " + error.message);
-    return encodedRedirect("error", "/sign-up", error.message);
-  } else {
+  if (authError) {
+    console.error(authError.code + " " + authError.message);
+    return encodedRedirect("error", "/sign-up", authError.message);
+  }
+
+  // Créer l'utilisateur dans la table users
+  const { error: dbError } = await supabase.from("users").insert({
+    email,
+    password: "**********", // Ne pas stocker le mot de passe en clair
+    first_name: firstName,
+    last_name: lastName,
+    phone: phone,
+    role: "user",
+  });
+
+  if (dbError) {
+    console.error("Database error: ", dbError.message);
+    // Si l'insertion échoue, on essaie de supprimer l'utilisateur créé dans Auth
+    await supabase.auth.admin.deleteUser(authData.user?.id || "");
     return encodedRedirect(
-      "success",
+      "error",
       "/sign-up",
-      "Thanks for signing up! Please check your email for a verification link.",
+      "Erreur lors de la création du compte: " + dbError.message
     );
   }
+
+  return encodedRedirect(
+    "success",
+    "/sign-up",
+    "Merci pour votre inscription ! Veuillez vérifier votre email pour confirmer votre compte."
+  );
 };
 
 export const signInAction = async (formData: FormData) => {
@@ -75,7 +114,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
     return encodedRedirect(
       "error",
       "/forgot-password",
-      "Could not reset password",
+      "Could not reset password"
     );
   }
 
@@ -86,7 +125,7 @@ export const forgotPasswordAction = async (formData: FormData) => {
   return encodedRedirect(
     "success",
     "/forgot-password",
-    "Check your email for a link to reset your password.",
+    "Check your email for a link to reset your password."
   );
 };
 
@@ -100,7 +139,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password and confirm password are required",
+      "Password and confirm password are required"
     );
   }
 
@@ -108,7 +147,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Passwords do not match",
+      "Passwords do not match"
     );
   }
 
@@ -120,7 +159,7 @@ export const resetPasswordAction = async (formData: FormData) => {
     encodedRedirect(
       "error",
       "/protected/reset-password",
-      "Password update failed",
+      "Password update failed"
     );
   }
 
