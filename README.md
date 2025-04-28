@@ -81,7 +81,14 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
 
-5. You can now run the Next.js local development server:
+5. Run migrations with following commands:
+
+   ```bash
+   npm run db:link supabase_project_id
+   npm run db:up
+   ```
+
+6. You can now run the Next.js local development server:
 
    ```bash
    npm run dev
@@ -89,7 +96,7 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+7. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 

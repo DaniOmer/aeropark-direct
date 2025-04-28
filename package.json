@@ -3,7 +3,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "db:link": "npx supabase link --project-ref",
+    "db:new": "npx supabase migration new",
+    "db:up": "npx supabase db push",
+    "db:start": "npx supabase start",
+    "db:reset": "npx supabase db reset",
+    "db:types": "npx supabase gen types typescript --project-id zybqqwjtapgsprvtfafg > types/supabase.ts"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.1.1",
