@@ -2,7 +2,7 @@ import React from "react";
 
 export default function ReviewsSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2">Avis de nos clients</h2>
@@ -24,11 +24,11 @@ export default function ReviewsSection() {
             <span className="text-4xl font-bold ml-4">4.8</span>
           </div>
 
-          <p className="text-gray-600 mb-8">Sur 1,450 avis</p>
+          <p className="text-muted-foreground mb-8">Sur 1,450 avis</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Review 1 */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+            <div className="bg-secondary p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -44,19 +44,19 @@ export default function ReviewsSection() {
                   ))}
                 </div>
               </div>
-              <p className="text-gray-700 italic mb-4">
+              <p className="text-card-foreground italic mb-4">
                 "Service impeccable ! J&apos;ai laissé ma voiture pendant une
                 semaine, tout s&apos;est très bien passé. La navette était
                 ponctuelle et le personnel très aimable. Je recommande
                 vivement."
               </p>
-              <div className="text-gray-600 text-sm">
+              <div className="text-muted-foreground text-sm">
                 <span className="font-semibold">Marie L.</span> - Avril 2025
               </div>
             </div>
 
             {/* Review 2 */}
-            <div className="bg-gray-50 p-6 rounded-lg shadow-sm">
+            <div className="bg-secondary p-6 rounded-lg shadow-sm">
               <div className="flex items-center mb-4">
                 <div className="flex text-yellow-400">
                   {[1, 2, 3, 4, 5].map((star) => (
@@ -72,19 +72,19 @@ export default function ReviewsSection() {
                   ))}
                 </div>
               </div>
-              <p className="text-gray-700 italic mb-4">
+              <p className="text-card-foreground italic mb-4">
                 "Très pratique et économique. Le parking est sécurisé et la
                 navette gratuite est un vrai plus. J&apos;utiliserai à nouveau
                 ce service pour mes prochains voyages."
               </p>
-              <div className="text-gray-600 text-sm">
+              <div className="text-muted-foreground text-sm">
                 <span className="font-semibold">Thomas B.</span> - Mars 2025
               </div>
             </div>
           </div>
 
           <div className="mt-10">
-            <button className="bg-white text-primary border border-primary hover:bg-primary/5 font-medium px-6 py-3 rounded-md transition-colors">
+            <button className="bg-card text-primary border border-primary hover:bg-primary/5 font-medium px-6 py-3 rounded-md transition-colors">
               Voir tous les avis
             </button>
           </div>

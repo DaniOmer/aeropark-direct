@@ -21,7 +21,7 @@ export default function ReservationForm() {
   return (
     <div
       id="reservation"
-      className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden"
+      className="w-full max-w-4xl mx-auto bg-card rounded-xl shadow-lg overflow-hidden"
     >
       <div className="p-8">
         <h2 className="text-2xl font-bold text-center mb-6">

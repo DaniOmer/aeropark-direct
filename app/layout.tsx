@@ -44,7 +44,7 @@ export default function RootLayout({
                 <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center">
                     <Link href={"/"} className="font-bold text-lg text-primary">
-                      Aéropark Direct
+                      ParkAero Direct
                     </Link>
                     <div className="hidden md:flex gap-6 ml-8">
                       <Link
@@ -80,16 +80,16 @@ export default function RootLayout({
                 {children}
               </div>
 
-              <footer className="w-full bg-gray-900 text-white py-16">
+              <footer className="w-full bg-secondary text-secondary-foreground py-16">
                 <div className="container max-w-screen-xl mx-auto px-4">
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div>
                       <h3 className="text-lg font-bold mb-4">
                         Aéropark Direct
                       </h3>
-                      <p className="text-gray-400 text-sm">
-                        Parking sécurisé à proximité de l&apos;aéroport avec
-                        navette gratuite 24h/24 et 7j/7.
+                      <p className="text-muted-foreground text-sm">
+                        Parking sécurisé à proximité de l&apos;aéroport, 10
+                        minutes de Orly 4, avec navette gratuite 24h/24 et 7j/7.
                       </p>
                     </div>
 
@@ -99,7 +99,7 @@ export default function RootLayout({
                         <li>
                           <Link
                             href="/"
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Accueil
                           </Link>
@@ -107,7 +107,7 @@ export default function RootLayout({
                         <li>
                           <Link
                             href="#"
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Réservation
                           </Link>
@@ -115,7 +115,7 @@ export default function RootLayout({
                         <li>
                           <Link
                             href="#"
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Nos services
                           </Link>
@@ -123,7 +123,7 @@ export default function RootLayout({
                         <li>
                           <Link
                             href="#"
-                            className="text-gray-400 hover:text-white transition-colors"
+                            className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                           >
                             Tarifs
                           </Link>
@@ -133,17 +133,17 @@ export default function RootLayout({
 
                     <div>
                       <h3 className="text-lg font-bold mb-4">Contact</h3>
-                      <ul className="space-y-2 text-sm text-gray-400">
-                        <li>123 Avenue de l&apos;Aéroport</li>
-                        <li>94310 Orly</li>
-                        <li>Tél: 01 23 45 67 89</li>
-                        <li>Email: contact@aeropark-direct.com</li>
+                      <ul className="space-y-2 text-sm text-muted-foreground">
+                        <li>3 avenue germaine</li>
+                        <li>91170 Vitry-Châtillon</li>
+                        <li>Tél: 06 24 72 48 11</li>
+                        <li>Email: contact@parkaero-direct.fr</li>
                       </ul>
                     </div>
 
                     <div>
                       <h3 className="text-lg font-bold mb-4">Horaires</h3>
-                      <p className="text-gray-400 text-sm mb-2">
+                      <p className="text-muted-foreground text-sm mb-2">
                         Accueil et navette disponibles 24h/24 et 7j/7.
                       </p>
                       <div className="flex items-center mt-4">
@@ -152,9 +152,9 @@ export default function RootLayout({
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-800 mt-12 pt-8 text-center text-xs text-gray-500">
+                  <div className="border-t border-muted mt-12 pt-8 text-center text-xs text-muted-foreground">
                     <p>
-                      © {new Date().getFullYear()} Aéropark Direct. Tous droits
+                      © {new Date().getFullYear()} ParkAero Direct. Tous droits
                       réservés.
                     </p>
                   </div>

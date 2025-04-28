@@ -17,7 +17,7 @@ export default async function Signup(props: {
 
   return (
     <>
-      <div className="flex flex-col min-w-64 max-w-64 mx-auto">
+      <div className="flex flex-col space-y-4 w-full max-w-md mx-auto">
         <p className="text-sm text text-foreground mb-4">
           Already have an account?{" "}
           <Link className="text-primary font-medium underline" href="/sign-in">
@@ -25,8 +25,8 @@ export default async function Signup(props: {
           </Link>
         </p>
         <RegisterForm message={searchParams} />
+        <SmtpMessage />
       </div>
-      <SmtpMessage />
     </>
   );
 }

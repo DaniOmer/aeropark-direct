@@ -2,7 +2,7 @@ import React from "react";
 
 export default function FeaturesSection() {
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-16 bg-secondary">
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12">
           Accessible, sécurisé et efficace
@@ -10,7 +10,7 @@ export default function FeaturesSection() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Feature 1: Parking Surveillé */}
-          <div className="bg-white p-8 rounded-xl shadow-md flex flex-col items-center text-center">
+          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -28,12 +28,12 @@ export default function FeaturesSection() {
               </svg>
             </div>
             <h3 className="text-xl font-bold mb-4">PARKING SURVEILLÉ</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Parking sous{" "}
               <span className="font-semibold">vidéosurveillance constante</span>{" "}
               avec présence humaine 24h/7j.
             </p>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               L&apos;accès au parking est régulé par un portail automatique,
               évitant ainsi d&apos;exposer votre véhicule aux menaces
               extérieures.
@@ -41,7 +41,7 @@ export default function FeaturesSection() {
           </div>
 
           {/* Feature 2: Accessibilité */}
-          <div className="bg-white p-8 rounded-xl shadow-md flex flex-col items-center text-center">
+          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -65,11 +65,11 @@ export default function FeaturesSection() {
               </svg>
             </div>
             <h3 className="text-xl font-bold mb-4">ACCESSIBILITÉ</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               À <span className="font-semibold">quelques minutes</span> de
               l&apos;aéroport, avec transfert rapide vers votre terminal.
             </p>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Notre emplacement stratégique vous permet d&apos;accéder
               facilement à l&apos;aéroport tout en bénéficiant de tarifs
               avantageux.
@@ -77,7 +77,7 @@ export default function FeaturesSection() {
           </div>
 
           {/* Feature 3: Navette Offerte */}
-          <div className="bg-white p-8 rounded-xl shadow-md flex flex-col items-center text-center">
+          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -95,14 +95,14 @@ export default function FeaturesSection() {
               </svg>
             </div>
             <h3 className="text-xl font-bold mb-4">NAVETTE OFFERTE</h3>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               Les trajets en{" "}
               <span className="font-semibold">
                 navette vers et depuis l&apos;aéroport
               </span>{" "}
               sont offerts.
             </p>
-            <p className="text-gray-600">
+            <p className="text-muted-foreground">
               Nos navettes confortables vous déposent directement à votre
               terminal et vous récupèrent à votre retour, sans frais
               supplémentaires.

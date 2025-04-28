@@ -98,7 +98,7 @@ export function RegisterForm({ message }: RegisterFormProps) {
   return (
     <form
       id="signup-form"
-      className="flex flex-col min-w-64 max-w-64 mx-auto"
+      className="flex flex-col w-full max-w-md mx-auto"
       onSubmit={handleSubmit(onSubmit)}
     >
       <h1 className="text-2xl font-medium">Sign up</h1>

@@ -2,7 +2,7 @@ import React from "react";
 
 export default function PaymentMethods() {
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-secondary">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-center gap-8">
@@ -10,7 +10,7 @@ export default function PaymentMethods() {
               <h3 className="text-xl font-bold mb-4">
                 Moyens de paiement acceptés
               </h3>
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Nous acceptons plusieurs méthodes de paiement sécurisées pour
                 votre confort.
               </p>
@@ -18,7 +18,7 @@ export default function PaymentMethods() {
 
             <div className="flex items-center justify-center gap-8 md:w-2/3">
               {/* Credit Card */}
-              <div className="w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center p-3">
+              <div className="w-16 h-16 bg-card rounded-lg shadow-sm flex items-center justify-center p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-full w-full text-blue-600"
@@ -36,7 +36,7 @@ export default function PaymentMethods() {
               </div>
 
               {/* Visa */}
-              <div className="w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center p-3">
+              <div className="w-16 h-16 bg-card rounded-lg shadow-sm flex items-center justify-center p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 576 512"
@@ -50,7 +50,7 @@ export default function PaymentMethods() {
               </div>
 
               {/* Mastercard */}
-              <div className="w-16 h-16 bg-white rounded-lg shadow-sm flex items-center justify-center p-3">
+              <div className="w-16 h-16 bg-card rounded-lg shadow-sm flex items-center justify-center p-3">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 576 512"
