@@ -404,6 +404,22 @@ export const deleteOption = async (
   return { success: true };
 };
 
+// Types for parking lot data
+export type ParkingLotData = {
+  id: string;
+  name: string;
+  address: string;
+  city: string;
+  postal_code: string;
+  country: string;
+  phone: string;
+  email: string;
+  description: string | null;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
 // Fetch all parking lots for dropdown selection
 export const getParkingLots = async () => {
   const supabase = await createClient();
@@ -418,4 +434,81 @@ export const getParkingLots = async () => {
   }
 
   return data || [];
+};
+
+// Fetch a single parking lot by ID
+export const getParkingLotById = async (
+  id: string
+): Promise<ParkingLotData | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("parking_lots")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching parking lot by ID:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// Get the first parking lot (since there's only one for now)
+export const getFirstParkingLot = async (): Promise<ParkingLotData | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("parking_lots")
+    .select("*")
+    .limit(1)
+    .single();
+
+  if (error) {
+    console.error("Error fetching first parking lot:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// Create a new parking lot
+export const createParkingLot = async (
+  parkingLot: Omit<ParkingLotData, "id" | "created_at" | "updated_at">
+): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("parking_lots")
+    .insert([parkingLot])
+    .select();
+
+  if (error) {
+    console.error("Error creating parking lot:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data[0].id };
+};
+
+// Update an existing parking lot
+export const updateParkingLot = async (
+  id: string,
+  parkingLot: Partial<Omit<ParkingLotData, "id" | "created_at" | "updated_at">>
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("parking_lots")
+    .update(parkingLot)
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating parking lot:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
 };

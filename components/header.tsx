@@ -37,7 +37,7 @@ export default function Header() {
   // UN soucis avec le user
   // il n'est pas mis à jour lorsque l'utilisateur se connecte
   // il faut rafraichir la page pour que le user soit mis à jour
-  console.log("user", user);
+  // console.log("user", user);
 
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
