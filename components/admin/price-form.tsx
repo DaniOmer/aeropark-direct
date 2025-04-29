@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToastContext } from "@/components/providers/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +18,7 @@ type PriceFormProps = {
   parkingLots: ParkingLot[];
   onSubmit: (
     data: Omit<PriceData, "id" | "created_at" | "updated_at">
-  ) => Promise<void>;
+  ) => Promise<any>;
   onCancel: () => void;
 };
 
@@ -27,6 +28,7 @@ export default function PriceForm({
   onSubmit,
   onCancel,
 }: PriceFormProps) {
+  const { addToast } = useToastContext();
   // Use the first parking lot ID by default if available
   const defaultParkingLotId = parkingLots.length > 0 ? parkingLots[0].id : "";
 
@@ -77,8 +79,17 @@ export default function PriceForm({
 
     try {
       await onSubmit(formData);
+      addToast(
+        initialData
+          ? "Le tarif a été mis à jour avec succès"
+          : "Le tarif a été créé avec succès",
+        "success"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      const errorMessage =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(errorMessage);
+      addToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }

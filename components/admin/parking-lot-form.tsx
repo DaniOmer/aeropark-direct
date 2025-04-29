@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useToastContext } from "@/components/providers/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,7 @@ type ParkingLotFormProps = {
   initialData?: ParkingLotData | null;
   onSubmit: (
     data: Omit<ParkingLotData, "id" | "created_at" | "updated_at">
-  ) => Promise<void>;
+  ) => Promise<any>;
   onCancel?: () => void;
 };
 
@@ -21,6 +22,7 @@ export default function ParkingLotForm({
   onSubmit,
   onCancel,
 }: ParkingLotFormProps) {
+  const { addToast } = useToastContext();
   const [formData, setFormData] = useState<
     Omit<ParkingLotData, "id" | "created_at" | "updated_at">
   >({
@@ -62,8 +64,17 @@ export default function ParkingLotForm({
 
     try {
       await onSubmit(formData);
+      addToast(
+        initialData
+          ? "Les informations du parking ont été mises à jour avec succès"
+          : "Le parking a été créé avec succès",
+        "success"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      const errorMessage =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(errorMessage);
+      addToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }

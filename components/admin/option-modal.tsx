@@ -10,7 +10,7 @@ type OptionModalProps = {
   onClose: () => void;
   onSubmit: (
     data: Omit<OptionData, "id" | "created_at" | "updated_at">
-  ) => Promise<void>;
+  ) => Promise<any>;
 };
 
 export default function OptionModal({

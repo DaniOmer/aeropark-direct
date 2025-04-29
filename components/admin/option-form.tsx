@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToastContext } from "@/components/providers/toast-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,7 +13,7 @@ type OptionFormProps = {
   initialData?: OptionData | null;
   onSubmit: (
     data: Omit<OptionData, "id" | "created_at" | "updated_at">
-  ) => Promise<void>;
+  ) => Promise<any>;
   onCancel: () => void;
 };
 
@@ -21,6 +22,7 @@ export default function OptionForm({
   onSubmit,
   onCancel,
 }: OptionFormProps) {
+  const { addToast } = useToastContext();
   const [formData, setFormData] = useState<
     Omit<OptionData, "id" | "created_at" | "updated_at">
   >({
@@ -65,8 +67,17 @@ export default function OptionForm({
 
     try {
       await onSubmit(formData);
+      addToast(
+        initialData
+          ? "L'option a été mise à jour avec succès"
+          : "L'option a été créée avec succès",
+        "success"
+      );
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue");
+      const errorMessage =
+        err instanceof Error ? err.message : "Une erreur est survenue";
+      setError(errorMessage);
+      addToast(errorMessage, "error");
     } finally {
       setIsSubmitting(false);
     }

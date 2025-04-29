@@ -16,7 +16,7 @@ type PriceModalProps = {
   parkingLots: ParkingLot[];
   onSubmit: (
     data: Omit<PriceData, "id" | "created_at" | "updated_at">
-  ) => Promise<void>;
+  ) => Promise<any>;
 };
 
 export default function PriceModal({

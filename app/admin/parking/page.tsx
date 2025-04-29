@@ -6,7 +6,7 @@ import {
 } from "@/app/actions";
 import ParkingLotForm from "@/components/admin/parking-lot-form";
 import { Button } from "@/components/ui/button";
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export default async function ParkingPage() {
   // Try to get the first parking lot (since there's only one for now)
@@ -45,8 +45,9 @@ export default async function ParkingPage() {
       }
     }
 
-    // Redirect to refresh the page
-    redirect("/admin/parking");
+    // Revalidate the path to refresh the data
+    revalidatePath("/admin/parking");
+    return { success: true };
   }
 
   return (

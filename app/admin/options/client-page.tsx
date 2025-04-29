@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToastContext } from "@/components/providers/toast-provider";
 import { getAllOptionsData, createOption, getParkingLots } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function OptionsPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [options, setOptions] = useState(initialOptions);
   const router = useRouter();
+  const { addToast } = useToastContext();
 
   return (
     <div className="space-y-6">
@@ -83,6 +85,7 @@ export default function OptionsPage({
               if (result.success) {
                 // Refresh the page to get the updated data
                 router.refresh();
+                return { success: true };
               } else {
                 throw new Error(
                   result.error || "Erreur lors de la création de l'option"
@@ -90,11 +93,12 @@ export default function OptionsPage({
               }
             } catch (error) {
               console.error("Error creating option:", error);
-              alert(
+              const errorMessage =
                 error instanceof Error
                   ? error.message
-                  : "Une erreur est survenue"
-              );
+                  : "Une erreur est survenue";
+              addToast(errorMessage, "error");
+              throw error;
             }
           }}
         />

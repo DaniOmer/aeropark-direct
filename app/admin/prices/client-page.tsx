@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToastContext } from "@/components/providers/toast-provider";
 import { getAllPricingData, getParkingLots, createPrice } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function PricesPage({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prices, setPrices] = useState(initialPrices);
   const router = useRouter();
+  const { addToast } = useToastContext();
 
   // Create a map of parking lot IDs to names for display
   const parkingLotMap = parkingLots.reduce(
@@ -93,19 +95,20 @@ export default function PricesPage({
               if (result.success) {
                 // Refresh the page to get the updated data
                 router.refresh();
+                return { success: true };
               } else {
-                console.log("result", result);
                 throw new Error(
                   result.error || "Erreur lors de la création du tarif"
                 );
               }
             } catch (error) {
               console.error("Error creating price:", error);
-              alert(
+              const errorMessage =
                 error instanceof Error
                   ? error.message
-                  : "Une erreur est survenue"
-              );
+                  : "Une erreur est survenue";
+              addToast(errorMessage, "error");
+              throw error;
             }
           }}
         />
