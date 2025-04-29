@@ -512,3 +512,152 @@ export const updateParkingLot = async (
 
   return { success: true };
 };
+
+// Types for reservation data
+export type ReservationData = {
+  id: string;
+  user_id: string;
+  start_date: string;
+  end_date: string;
+  parking_lot_id: string;
+  vehicle_type: string;
+  vehicle_brand: string;
+  vehicle_model: string;
+  vehicle_color: string;
+  vehicle_plate: string;
+  total_price: number;
+  status: string;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// Types for user data
+export type UserData = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+  role: string;
+};
+
+// Types for reservation with user data
+export type ReservationWithUserData = ReservationData & {
+  user: UserData;
+  parking_lot: {
+    name: string;
+  };
+  reservation_options: {
+    option_id: string;
+    quantity: number;
+    option: {
+      name: string;
+      price: number;
+    };
+  }[];
+  payments: {
+    id: string;
+    amount: number;
+    method: string;
+    status: string;
+  }[];
+};
+
+// Fetch all reservations for admin
+export const getAllReservations = async (): Promise<
+  ReservationWithUserData[]
+> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(
+      `
+      *,
+      user:user_id (id, email, first_name, last_name, phone, role),
+      parking_lot:parking_lot_id (name),
+      reservation_options (
+        option_id,
+        quantity,
+        option:option_id (name, price)
+      ),
+      payments (id, amount, method, status)
+    `
+    )
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all reservations:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch a single reservation by ID
+export const getReservationById = async (
+  id: string
+): Promise<ReservationWithUserData | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("reservations")
+    .select(
+      `
+      *,
+      user:user_id (id, email, first_name, last_name, phone, role),
+      parking_lot:parking_lot_id (name),
+      reservation_options (
+        option_id,
+        quantity,
+        option:option_id (name, price)
+      ),
+      payments (id, amount, method, status)
+    `
+    )
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching reservation by ID:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// Update a reservation status
+export const updateReservationStatus = async (
+  id: string,
+  status: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("reservations")
+    .update({ status })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating reservation status:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Delete a reservation
+export const deleteReservation = async (
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("reservations").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting reservation:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
