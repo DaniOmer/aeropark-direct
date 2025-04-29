@@ -34,6 +34,11 @@ export default function Header() {
     router.refresh();
   };
 
+  // UN soucis avec le user
+  // il n'est pas mis à jour lorsque l'utilisateur se connecte
+  // il faut rafraichir la page pour que le user soit mis à jour
+  console.log("user", user);
+
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
       <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">

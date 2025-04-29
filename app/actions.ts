@@ -198,6 +198,19 @@ export type PriceData = {
   late_fee: number;
   currency: string;
   is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+// Types for options data
+export type OptionData = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
 };
 
 // Fetch pricing data from the database
@@ -211,6 +224,196 @@ export const getPricingData = async (): Promise<PriceData[]> => {
 
   if (error) {
     console.error("Error fetching pricing data:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch all pricing data for admin (including inactive)
+export const getAllPricingData = async (): Promise<PriceData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("prices")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all pricing data:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch a single price by ID
+export const getPriceById = async (id: string): Promise<PriceData | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("prices")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching price by ID:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// Create a new price
+export const createPrice = async (
+  price: Omit<PriceData, "id" | "created_at" | "updated_at">
+): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("prices")
+    .insert([price])
+    .select();
+
+  if (error) {
+    console.error("Error creating price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data[0].id };
+};
+
+// Update an existing price
+export const updatePrice = async (
+  id: string,
+  price: Partial<Omit<PriceData, "id" | "created_at" | "updated_at">>
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("prices").update(price).eq("id", id);
+
+  if (error) {
+    console.error("Error updating price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Delete a price
+export const deletePrice = async (
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("prices").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Fetch all options data for admin
+export const getAllOptionsData = async (): Promise<OptionData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("options")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching all options data:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch a single option by ID
+export const getOptionById = async (id: string): Promise<OptionData | null> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("options")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching option by ID:", error);
+    return null;
+  }
+
+  return data;
+};
+
+// Create a new option
+export const createOption = async (
+  option: Omit<OptionData, "id" | "created_at" | "updated_at">
+): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("options")
+    .insert([option])
+    .select();
+
+  if (error) {
+    console.error("Error creating option:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data[0].id };
+};
+
+// Update an existing option
+export const updateOption = async (
+  id: string,
+  option: Partial<Omit<OptionData, "id" | "created_at" | "updated_at">>
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("options").update(option).eq("id", id);
+
+  if (error) {
+    console.error("Error updating option:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Delete an option
+export const deleteOption = async (
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("options").delete().eq("id", id);
+
+  if (error) {
+    console.error("Error deleting option:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Fetch all parking lots for dropdown selection
+export const getParkingLots = async () => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("parking_lots")
+    .select("id, name");
+
+  if (error) {
+    console.error("Error fetching parking lots:", error);
     return [];
   }
 
