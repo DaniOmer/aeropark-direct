@@ -149,6 +149,15 @@ export default function ContactPage() {
               <div className="bg-card p-4 rounded-xl shadow-md">
                 <div className="aspect-video bg-muted rounded-md flex items-center justify-center">
                   {/* Placeholder for map - in a real implementation, this would be a Google Maps embed */}
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d5268.287061992424!2d2.3690829250991863!3d48.68362040687684!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e5df42c1dd152d%3A0xcac7628533f9e691!2s3%20Av.%20Germaine%2C%2091170%20Viry-Ch%C3%A2tillon!5e0!3m2!1sen!2sfr!4v1745943572597!5m2!1sen!2sfr"
+                    width="600"
+                    height="450"
+                    style={{ border: "0" }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
                   <div className="text-center p-8">
                     <p className="text-muted-foreground mb-4">
                       Carte interactive
