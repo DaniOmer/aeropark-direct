@@ -531,6 +531,7 @@ export type ReservationData = {
   vehicle_plate: string;
   total_price: number;
   status: string;
+  number?: string;
   created_at?: string;
   updated_at?: string;
 };

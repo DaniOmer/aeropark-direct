@@ -351,11 +351,38 @@ export default function ReservationsClientPage({
                 <th
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
-                  onClick={() => handleSort("user")}
+                  onClick={() => handleSort("number")}
+                >
+                  <div className="flex items-center">
+                    Numéro
+                    {sortField === "number" && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-4 w-4 ml-1 ${
+                          sortDirection === "asc" ? "transform rotate-180" : ""
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort("user_id")}
                 >
                   <div className="flex items-center">
                     Client
-                    {sortField === "user" && (
+                    {sortField === "user_id" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         className={`h-4 w-4 ml-1 ${
@@ -461,6 +488,9 @@ export default function ReservationsClientPage({
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(reservation.created_at || "")}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                      {reservation.number || "—"}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
