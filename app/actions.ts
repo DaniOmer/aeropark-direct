@@ -416,6 +416,10 @@ export type ParkingLotData = {
   email: string;
   description: string | null;
   is_active: boolean;
+  capacity_small_cars?: number | null;
+  capacity_large_cars?: number | null;
+  capacity_small_motorcycles?: number | null;
+  capacity_large_motorcycles?: number | null;
   created_at?: string;
   updated_at?: string;
 };

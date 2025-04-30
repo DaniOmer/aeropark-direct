@@ -35,6 +35,10 @@ export default function ParkingLotForm({
     email: initialData?.email || "",
     description: initialData?.description || "",
     is_active: initialData?.is_active ?? true,
+    capacity_small_cars: initialData?.capacity_small_cars ?? 0,
+    capacity_large_cars: initialData?.capacity_large_cars ?? 0,
+    capacity_small_motorcycles: initialData?.capacity_small_motorcycles ?? 0,
+    capacity_large_motorcycles: initialData?.capacity_large_motorcycles ?? 0,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -44,10 +48,28 @@ export default function ParkingLotForm({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    // Handle numeric inputs for capacity fields
+    if (name.startsWith("capacity_")) {
+      // If value is empty string, set to 0 instead of null
+      if (value === "") {
+        setFormData({
+          ...formData,
+          [name]: 0,
+        });
+      } else {
+        const numValue = parseInt(value, 10);
+        setFormData({
+          ...formData,
+          [name]: isNaN(numValue) ? 0 : numValue,
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   const handleCheckboxChange = (checked: boolean) => {
@@ -233,6 +255,83 @@ export default function ParkingLotForm({
             rows={4}
             className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           />
+        </div>
+
+        {/* Capacités section */}
+        <div className="md:col-span-2 mt-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+            Capacités du parking
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label
+                htmlFor="capacity_small_cars"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Capacité voitures petites
+              </Label>
+              <Input
+                id="capacity_small_cars"
+                name="capacity_small_cars"
+                type="number"
+                min="0"
+                value={formData.capacity_small_cars ?? 0}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="capacity_large_cars"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Capacité voitures grandes
+              </Label>
+              <Input
+                id="capacity_large_cars"
+                name="capacity_large_cars"
+                type="number"
+                min="0"
+                value={formData.capacity_large_cars ?? 0}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="capacity_small_motorcycles"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Capacité motos petites
+              </Label>
+              <Input
+                id="capacity_small_motorcycles"
+                name="capacity_small_motorcycles"
+                type="number"
+                min="0"
+                value={formData.capacity_small_motorcycles ?? 0}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="capacity_large_motorcycles"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Capacité motos grandes
+              </Label>
+              <Input
+                id="capacity_large_motorcycles"
+                name="capacity_large_motorcycles"
+                type="number"
+                min="0"
+                value={formData.capacity_large_motorcycles ?? 0}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
