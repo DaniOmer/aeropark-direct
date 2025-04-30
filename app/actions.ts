@@ -787,8 +787,8 @@ export const checkCapacity = async (
   return { available: true };
 };
 
-// Create a new reservation with overbooking prevention
-export const createReservation = async (reservationData: {
+// Type for reservation data with options
+export type ReservationWithOptions = {
   user_id: string;
   parking_lot_id: string;
   start_date: string;
@@ -798,7 +798,22 @@ export const createReservation = async (reservationData: {
   vehicle_model: string;
   vehicle_color: string;
   vehicle_plate: string;
-}): Promise<{ success: boolean; error?: string; id?: string }> => {
+  options?: { option_id: string; quantity: number }[];
+};
+
+// Calculate the number of days between two dates
+const calculateDays = (startDate: string, endDate: string): number => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays || 1; // Ensure at least 1 day
+};
+
+// Create a new reservation with overbooking prevention
+export const createReservation = async (
+  reservationData: ReservationWithOptions
+): Promise<{ success: boolean; error?: string; id?: string }> => {
   const supabase = await createClient();
 
   // Check capacity first
@@ -818,16 +833,88 @@ export const createReservation = async (reservationData: {
     };
   }
 
-  // Calculate price (simplified for now - would need to fetch pricing data)
-  // In a real implementation, you would calculate the price based on the duration and pricing rules
-  const totalPrice = 100; // Placeholder price
+  // Calculate the number of days
+  const days = calculateDays(
+    reservationData.start_date,
+    reservationData.end_date
+  );
+  console.log("days", reservationData.parking_lot_id);
 
-  // Create the reservation
+  // Get the active price for this parking lot
+  const { data: priceData, error: priceError } = await supabase
+    .from("prices")
+    .select("*")
+    .eq("parking_lot_id", reservationData.parking_lot_id)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (priceError || !priceData) {
+    console.error("Error fetching price data:", priceError);
+    return {
+      success: false,
+      error: "Impossible de trouver un tarif actif pour ce parking",
+    };
+  }
+
+  // Calculate base price
+  let totalPrice = priceData.base_price;
+
+  // Add price for additional days if applicable
+  if (days > priceData.base_duration_days) {
+    const additionalDays = days - priceData.base_duration_days;
+    totalPrice += additionalDays * priceData.additional_day_price;
+  }
+
+  // Calculate options price if options are provided
+  let optionsPrice = 0;
+  const optionsToInsert = [];
+
+  if (reservationData.options && reservationData.options.length > 0) {
+    // Get all option IDs
+    const optionIds = reservationData.options.map((opt) => opt.option_id);
+
+    // Fetch option details
+    const { data: optionsData, error: optionsError } = await supabase
+      .from("options")
+      .select("id, price")
+      .in("id", optionIds)
+      .eq("is_active", true);
+
+    if (optionsError) {
+      console.error("Error fetching options data:", optionsError);
+      return {
+        success: false,
+        error: "Erreur lors de la récupération des options",
+      };
+    }
+
+    // Calculate options price
+    for (const option of reservationData.options) {
+      const optionData = optionsData.find((o) => o.id === option.option_id);
+      if (optionData) {
+        optionsPrice += optionData.price * option.quantity;
+        optionsToInsert.push({
+          option_id: option.option_id,
+          quantity: option.quantity,
+        });
+      }
+    }
+  }
+
+  // Add options price to total
+  totalPrice += optionsPrice;
+
+  // Create a copy of reservationData without the options field
+  const { options, ...reservationDataWithoutOptions } = reservationData;
+
+  // Insert the reservation without the options field
   const { data, error } = await supabase
     .from("reservations")
     .insert([
       {
-        ...reservationData,
+        ...reservationDataWithoutOptions,
         total_price: totalPrice,
         status: "confirmed", // Auto-confirm admin-created reservations
       },
@@ -839,5 +926,26 @@ export const createReservation = async (reservationData: {
     return { success: false, error: error.message };
   }
 
-  return { success: true, id: data[0].id };
+  const reservationId = data[0].id;
+
+  // Insert options if any
+  if (optionsToInsert.length > 0) {
+    const optionsWithReservationId = optionsToInsert.map((opt) => ({
+      reservation_id: reservationId,
+      option_id: opt.option_id,
+      quantity: opt.quantity,
+    }));
+
+    const { error: optionsInsertError } = await supabase
+      .from("reservation_options")
+      .insert(optionsWithReservationId);
+
+    if (optionsInsertError) {
+      console.error("Error inserting reservation options:", optionsInsertError);
+      // We don't return an error here as the reservation was created successfully
+      // In a production app, you might want to handle this more gracefully
+    }
+  }
+
+  return { success: true, id: reservationId };
 };

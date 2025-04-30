@@ -7,7 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { useToastContext } from "@/components/providers/toast-provider";
-import { ParkingLotData, UserData } from "@/app/actions";
+import {
+  ParkingLotData,
+  UserData,
+  OptionData,
+  ReservationWithOptions,
+  getAllOptionsData,
+} from "@/app/actions";
 import { format } from "date-fns";
 
 type CreateReservationModalProps = {
@@ -18,17 +24,7 @@ type CreateReservationModalProps = {
   users: UserData[];
 };
 
-export type ReservationFormData = {
-  user_id: string;
-  parking_lot_id: string;
-  start_date: string;
-  end_date: string;
-  vehicle_type: string;
-  vehicle_brand: string;
-  vehicle_model: string;
-  vehicle_color: string;
-  vehicle_plate: string;
-};
+export type ReservationFormData = ReservationWithOptions;
 
 export default function CreateReservationModal({
   isOpen,
@@ -41,6 +37,11 @@ export default function CreateReservationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [capacityError, setCapacityError] = useState<string | null>(null);
+  const [options, setOptions] = useState<OptionData[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<
+    { option_id: string; quantity: number }[]
+  >([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
   const [formData, setFormData] = useState<ReservationFormData>({
     user_id: "",
@@ -52,9 +53,10 @@ export default function CreateReservationModal({
     vehicle_model: "",
     vehicle_color: "",
     vehicle_plate: "",
+    options: [],
   });
 
-  // Reset form when modal opens
+  // Fetch options when modal opens
   useEffect(() => {
     if (isOpen) {
       setError(null);
@@ -69,9 +71,28 @@ export default function CreateReservationModal({
         vehicle_model: "",
         vehicle_color: "",
         vehicle_plate: "",
+        options: [],
       });
+      setSelectedOptions([]);
+
+      // Fetch available options
+      const fetchOptions = async () => {
+        setIsLoadingOptions(true);
+        try {
+          const optionsData = await getAllOptionsData();
+          // Filter only active options
+          setOptions(optionsData.filter((opt) => opt.is_active));
+        } catch (error) {
+          console.error("Error fetching options:", error);
+          addToast("Erreur lors du chargement des options", "error");
+        } finally {
+          setIsLoadingOptions(false);
+        }
+      };
+
+      fetchOptions();
     }
-  }, [isOpen, parkingLots]);
+  }, [isOpen, parkingLots, addToast]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -93,6 +114,31 @@ export default function CreateReservationModal({
     ) {
       setCapacityError(null);
     }
+  };
+
+  // Handle option selection
+  const handleOptionChange = (optionId: string, checked: boolean) => {
+    if (checked) {
+      // Add option with quantity 1
+      setSelectedOptions([
+        ...selectedOptions,
+        { option_id: optionId, quantity: 1 },
+      ]);
+    } else {
+      // Remove option
+      setSelectedOptions(
+        selectedOptions.filter((opt) => opt.option_id !== optionId)
+      );
+    }
+  };
+
+  // Handle option quantity change
+  const handleQuantityChange = (optionId: string, quantity: number) => {
+    setSelectedOptions(
+      selectedOptions.map((opt) =>
+        opt.option_id === optionId ? { ...opt, quantity } : opt
+      )
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,7 +172,13 @@ export default function CreateReservationModal({
     }
 
     try {
-      await onSubmit(formData);
+      // Add selected options to form data
+      const dataWithOptions = {
+        ...formData,
+        options: selectedOptions.length > 0 ? selectedOptions : undefined,
+      };
+
+      await onSubmit(dataWithOptions);
       onClose();
       addToast("Réservation créée avec succès", "success");
     } catch (err) {
@@ -359,6 +411,116 @@ export default function CreateReservationModal({
                   required
                 />
               </div>
+            </div>
+
+            {/* Options */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                Options supplémentaires
+              </h3>
+
+              {isLoadingOptions ? (
+                <div className="flex justify-center items-center py-4">
+                  <svg
+                    className="animate-spin h-5 w-5 text-blue-600"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                    Chargement des options...
+                  </span>
+                </div>
+              ) : options.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Aucune option disponible
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  {options.map((option) => {
+                    const isSelected = selectedOptions.some(
+                      (opt) => opt.option_id === option.id
+                    );
+                    const selectedOption = selectedOptions.find(
+                      (opt) => opt.option_id === option.id
+                    );
+
+                    return (
+                      <div
+                        key={option.id}
+                        className="border border-gray-200 dark:border-gray-700 rounded-md p-4"
+                      >
+                        <div className="flex items-start">
+                          <div className="flex h-5 items-center">
+                            <Checkbox
+                              id={`option-${option.id}`}
+                              checked={isSelected}
+                              onCheckedChange={(checked) =>
+                                handleOptionChange(
+                                  option.id,
+                                  checked as boolean
+                                )
+                              }
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                          </div>
+                          <div className="ml-3 text-sm">
+                            <Label
+                              htmlFor={`option-${option.id}`}
+                              className="font-medium text-gray-700 dark:text-gray-300"
+                            >
+                              {option.name} - {option.price} €
+                            </Label>
+                            {option.description && (
+                              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                                {option.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {isSelected && (
+                          <div className="mt-3 ml-7">
+                            <Label
+                              htmlFor={`quantity-${option.id}`}
+                              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                            >
+                              Quantité
+                            </Label>
+                            <Input
+                              id={`quantity-${option.id}`}
+                              type="number"
+                              min="1"
+                              value={selectedOption?.quantity || 1}
+                              onChange={(e) =>
+                                handleQuantityChange(
+                                  option.id,
+                                  parseInt(e.target.value) || 1
+                                )
+                              }
+                              className="w-24 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Capacity error message */}
