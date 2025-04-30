@@ -77,8 +77,8 @@ export default function ReservationDetailsModal({
   );
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -111,11 +111,11 @@ export default function ReservationDetailsModal({
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Statut
               </h3>
-              <div className="mt-2 flex items-center space-x-4">
+              <div className="mt-2 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <Badge className={getStatusBadgeColor(reservation.status)}>
                   {getStatusLabel(reservation.status)}
                 </Badge>
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   <Button
                     size="sm"
                     variant="outline"
@@ -282,7 +282,7 @@ export default function ReservationDetailsModal({
                 Options
               </h3>
               {reservation.reservation_options.length > 0 ? (
-                <div className="mt-2">
+                <div className="mt-2 overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>
@@ -345,7 +345,7 @@ export default function ReservationDetailsModal({
                 Paiement
               </h3>
               {reservation.payments.length > 0 ? (
-                <div className="mt-2">
+                <div className="mt-2 overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                     <thead className="bg-gray-50 dark:bg-gray-700">
                       <tr>

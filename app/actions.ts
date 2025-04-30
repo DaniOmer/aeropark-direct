@@ -665,3 +665,179 @@ export const deleteReservation = async (
 
   return { success: true };
 };
+
+// Get all users for admin
+export const getAllUsers = async (): Promise<UserData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, email, first_name, last_name, phone, role")
+    .order("last_name", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Check if there's enough capacity for a reservation
+export const checkCapacity = async (
+  parkingLotId: string,
+  vehicleType: string,
+  startDate: string,
+  endDate: string,
+  excludeReservationId?: string
+): Promise<{ available: boolean; message?: string }> => {
+  const supabase = await createClient();
+
+  // Get the parking lot to check its capacity
+  const { data: parkingLot, error: parkingLotError } = await supabase
+    .from("parking_lots")
+    .select("*")
+    .eq("id", parkingLotId)
+    .single();
+
+  if (parkingLotError || !parkingLot) {
+    console.error("Error fetching parking lot:", parkingLotError);
+    return {
+      available: false,
+      message: "Parking introuvable",
+    };
+  }
+
+  // Determine which capacity field to check based on vehicle type
+  let capacityField: string;
+  let vehicleTypeLabel: string;
+
+  switch (vehicleType) {
+    case "small_car":
+      capacityField = "capacity_small_cars";
+      vehicleTypeLabel = "voitures petites";
+      break;
+    case "large_car":
+      capacityField = "capacity_large_cars";
+      vehicleTypeLabel = "voitures grandes";
+      break;
+    case "small_motorcycle":
+      capacityField = "capacity_small_motorcycles";
+      vehicleTypeLabel = "motos petites";
+      break;
+    case "large_motorcycle":
+      capacityField = "capacity_large_motorcycles";
+      vehicleTypeLabel = "motos grandes";
+      break;
+    default:
+      return {
+        available: false,
+        message: "Type de véhicule non valide",
+      };
+  }
+
+  // Get the total capacity for this vehicle type
+  const totalCapacity = parkingLot[capacityField] || 0;
+
+  if (totalCapacity === 0) {
+    return {
+      available: false,
+      message: `Aucune place disponible pour les ${vehicleTypeLabel} dans ce parking`,
+    };
+  }
+
+  // Find overlapping reservations
+  let query = supabase
+    .from("reservations")
+    .select("id")
+    .eq("parking_lot_id", parkingLotId)
+    .eq("vehicle_type", vehicleType)
+    .eq("status", "confirmed")
+    .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+
+  // Exclude the current reservation if updating
+  if (excludeReservationId) {
+    query = query.neq("id", excludeReservationId);
+  }
+
+  const { data: overlappingReservations, error: reservationsError } =
+    await query;
+
+  if (reservationsError) {
+    console.error(
+      "Error checking overlapping reservations:",
+      reservationsError
+    );
+    return {
+      available: false,
+      message: "Erreur lors de la vérification des réservations existantes",
+    };
+  }
+
+  // Check if there's enough capacity
+  const reservedCount = overlappingReservations?.length || 0;
+
+  if (reservedCount >= totalCapacity) {
+    return {
+      available: false,
+      message: `Pas de capacité disponible pour les ${vehicleTypeLabel} pendant cette période. Capacité totale: ${totalCapacity}, Réservations existantes: ${reservedCount}`,
+    };
+  }
+
+  return { available: true };
+};
+
+// Create a new reservation with overbooking prevention
+export const createReservation = async (reservationData: {
+  user_id: string;
+  parking_lot_id: string;
+  start_date: string;
+  end_date: string;
+  vehicle_type: string;
+  vehicle_brand: string;
+  vehicle_model: string;
+  vehicle_color: string;
+  vehicle_plate: string;
+}): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const supabase = await createClient();
+
+  // Check capacity first
+  const capacityCheck = await checkCapacity(
+    reservationData.parking_lot_id,
+    reservationData.vehicle_type,
+    reservationData.start_date,
+    reservationData.end_date
+  );
+
+  if (!capacityCheck.available) {
+    return {
+      success: false,
+      error:
+        capacityCheck.message ||
+        "Pas de capacité disponible pour cette réservation",
+    };
+  }
+
+  // Calculate price (simplified for now - would need to fetch pricing data)
+  // In a real implementation, you would calculate the price based on the duration and pricing rules
+  const totalPrice = 100; // Placeholder price
+
+  // Create the reservation
+  const { data, error } = await supabase
+    .from("reservations")
+    .insert([
+      {
+        ...reservationData,
+        total_price: totalPrice,
+        status: "confirmed", // Auto-confirm admin-created reservations
+      },
+    ])
+    .select();
+
+  if (error) {
+    console.error("Error creating reservation:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data[0].id };
+};

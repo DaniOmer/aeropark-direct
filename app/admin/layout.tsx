@@ -154,7 +154,9 @@ export default async function AdminLayout({
             </div>
           </nav>
         </aside>
-        <main className="flex-1 p-4 md:p-8">{children}</main>
+        <main className="flex-1 p-4 md:p-8 overflow-x-auto max-w-full">
+          {children}
+        </main>
       </div>
     </div>
   );

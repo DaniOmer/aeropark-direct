@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useToastContext } from "@/components/providers/toast-provider";
 import {
   ReservationWithUserData,
   updateReservationStatus,
   deleteReservation,
+  createReservation,
+  getAllUsers,
+  UserData,
+  ParkingLotData,
+  getParkingLots,
+  getFirstParkingLot,
+  getReservationById,
 } from "@/app/actions";
+import CreateReservationModal, {
+  ReservationFormData,
+} from "./create-reservation-modal";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -26,12 +36,37 @@ export default function ReservationsClientPage({
   const [selectedReservation, setSelectedReservation] =
     useState<ReservationWithUserData | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [sortField, setSortField] =
     useState<keyof ReservationWithUserData>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [parkingLots, setParkingLots] = useState<ParkingLotData[]>([]);
   const router = useRouter();
   const { addToast } = useToastContext();
+
+  // Fetch users and parking lots for the create reservation modal
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Get users
+        const usersData = await getAllUsers();
+        setUsers(usersData);
+
+        // Get parking lot
+        const parkingLot = await getFirstParkingLot();
+        if (parkingLot) {
+          setParkingLots([parkingLot]);
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        addToast("Erreur lors du chargement des données", "error");
+      }
+    };
+
+    fetchData();
+  }, [addToast]);
 
   // Sort reservations
   const sortedReservations = [...reservations].sort((a, b) => {
@@ -155,6 +190,36 @@ export default function ReservationsClientPage({
     setIsDetailsModalOpen(true);
   };
 
+  // Handle create reservation
+  const handleCreateReservation = async (data: ReservationFormData) => {
+    try {
+      const result = await createReservation(data);
+
+      if (result.success && result.id) {
+        // Get the newly created reservation
+        const newReservation = await getReservationById(result.id);
+
+        if (newReservation) {
+          // Add the new reservation to the local state
+          setReservations([newReservation, ...reservations]);
+
+          // Also refresh the page to ensure all data is up to date
+          router.refresh();
+        } else {
+          // If we couldn't get the new reservation, just refresh the page
+          router.refresh();
+        }
+      } else {
+        throw new Error(
+          result.error || "Erreur lors de la création de la réservation"
+        );
+      }
+    } catch (error) {
+      console.error("Error creating reservation:", error);
+      throw error;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -167,66 +232,92 @@ export default function ReservationsClientPage({
           </p>
         </div>
 
-        {/* Status filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Create reservation button */}
           <Button
-            variant={statusFilter === null ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter(null)}
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-green-600 hover:bg-green-700 text-white"
           >
-            Toutes
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Créer une réservation
           </Button>
-          <Button
-            variant={statusFilter === "pending" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("pending")}
-            className={
-              statusFilter === "pending"
-                ? "bg-yellow-600 hover:bg-yellow-700"
-                : ""
-            }
-          >
-            En attente
-          </Button>
-          <Button
-            variant={statusFilter === "confirmed" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("confirmed")}
-            className={
-              statusFilter === "confirmed"
-                ? "bg-green-600 hover:bg-green-700"
-                : ""
-            }
-          >
-            Confirmées
-          </Button>
-          <Button
-            variant={statusFilter === "cancelled" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("cancelled")}
-            className={
-              statusFilter === "cancelled" ? "bg-red-600 hover:bg-red-700" : ""
-            }
-          >
-            Annulées
-          </Button>
-          <Button
-            variant={statusFilter === "completed" ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter("completed")}
-            className={
-              statusFilter === "completed"
-                ? "bg-blue-600 hover:bg-blue-700"
-                : ""
-            }
-          >
-            Terminées
-          </Button>
+
+          {/* Status filter */}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={statusFilter === null ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter(null)}
+            >
+              Toutes
+            </Button>
+            <Button
+              variant={statusFilter === "pending" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("pending")}
+              className={
+                statusFilter === "pending"
+                  ? "bg-yellow-600 hover:bg-yellow-700"
+                  : ""
+              }
+            >
+              En attente
+            </Button>
+            <Button
+              variant={statusFilter === "confirmed" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("confirmed")}
+              className={
+                statusFilter === "confirmed"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : ""
+              }
+            >
+              Confirmées
+            </Button>
+            <Button
+              variant={statusFilter === "cancelled" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("cancelled")}
+              className={
+                statusFilter === "cancelled"
+                  ? "bg-red-600 hover:bg-red-700"
+                  : ""
+              }
+            >
+              Annulées
+            </Button>
+            <Button
+              variant={statusFilter === "completed" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("completed")}
+              className={
+                statusFilter === "completed"
+                  ? "bg-blue-600 hover:bg-blue-700"
+                  : ""
+              }
+            >
+              Terminées
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full">
+        <div className="overflow-x-auto w-full">
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
@@ -465,6 +556,15 @@ export default function ReservationsClientPage({
         isOpen={isDetailsModalOpen}
         onClose={() => setIsDetailsModalOpen(false)}
         onStatusChange={handleStatusChange}
+      />
+
+      {/* Create Reservation Modal */}
+      <CreateReservationModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateReservation}
+        parkingLots={parkingLots}
+        users={users}
       />
     </div>
   );
