@@ -32,7 +32,7 @@ async function ConfirmationPageContent(searchParams: {
   }
 
   // Get reservation details
-  const reservation = await getReservationById(id);
+  const reservation = await getReservationById(id as string);
 
   if (!reservation) {
     console.error("Reservation not found");

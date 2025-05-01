@@ -33,7 +33,7 @@ async function PaymentPageContent(searchParams: {
   }
 
   // Get reservation details
-  const reservation = await getReservationById(id);
+  const reservation = await getReservationById(id as string);
 
   if (!reservation) {
     console.log("No reservation found");
