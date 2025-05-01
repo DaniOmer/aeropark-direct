@@ -3,6 +3,7 @@ import { createClient } from "@/utils/supabase/server";
 import {
   sendEmail,
   generateReservationConfirmationEmail,
+  generateAdminNotificationEmail,
 } from "@/utils/email-service";
 import { getReservationById } from "@/app/actions";
 
@@ -59,11 +60,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Generate email content
-    const htmlContent = generateReservationConfirmationEmail(reservation);
+    // Generate email content for customer
+    const customerHtmlContent =
+      generateReservationConfirmationEmail(reservation);
 
-    // Send confirmation email
-    const emailResult = await sendEmail({
+    // Send confirmation email to customer
+    const customerEmailResult = await sendEmail({
       to: [
         {
           email: userData.email,
@@ -71,21 +73,64 @@ export async function POST(request: NextRequest) {
         },
       ],
       subject: `Confirmation de réservation #${reservation.number || reservation.id.substring(0, 8)}`,
-      htmlContent,
+      htmlContent: customerHtmlContent,
     });
 
-    if (!emailResult.success) {
-      console.error("Error sending confirmation email:", emailResult.error);
+    if (!customerEmailResult.success) {
+      console.error(
+        "Error sending confirmation email to customer:",
+        customerEmailResult.error
+      );
       return NextResponse.json(
-        { error: "Failed to send confirmation email" },
+        { error: "Failed to send confirmation email to customer" },
         { status: 500 }
       );
     }
 
-    console.log("Confirmation email sent successfully");
+    console.log("Confirmation email sent successfully to customer");
+
+    // Get all admin users
+    const { data: adminUsers, error: adminUsersError } = await supabase
+      .from("users")
+      .select("email, first_name, last_name")
+      .eq("role", "admin");
+
+    if (adminUsersError) {
+      console.error("Error fetching admin users:", adminUsersError);
+      // Continue even if we can't fetch admin users, as the customer email was sent successfully
+    } else if (adminUsers && adminUsers.length > 0) {
+      // Generate admin notification email content
+      const adminHtmlContent = generateAdminNotificationEmail(
+        reservation,
+        userData
+      );
+
+      // Send notification to all admin users
+      const adminEmailResult = await sendEmail({
+        to: adminUsers.map((admin) => ({
+          email: admin.email,
+          name: `${admin.first_name} ${admin.last_name}`,
+        })),
+        subject: `Nouvelle réservation #${reservation.number || reservation.id.substring(0, 8)}`,
+        htmlContent: adminHtmlContent,
+      });
+
+      if (!adminEmailResult.success) {
+        console.error(
+          "Error sending notification to admin users:",
+          adminEmailResult.error
+        );
+        // Continue even if admin emails fail, as the customer email was sent successfully
+      } else {
+        console.log("Admin notification emails sent successfully");
+      }
+    } else {
+      console.log("No admin users found to notify");
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Confirmation email sent successfully",
+      message: "Confirmation emails sent successfully",
     });
   } catch (error: any) {
     console.error("Error processing payment webhook:", error);
