@@ -7,9 +7,10 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, Suspense } from "react";
 
-export default function Login() {
+// Composant qui utilise useSearchParams
+function SignInForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams?.get("returnUrl") || "";
   const error = searchParams?.get("error") || "";
@@ -85,5 +86,14 @@ export default function Login() {
         )}
       </div>
     </form>
+  );
+}
+
+// Composant principal avec Suspense
+export default function Login() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SignInForm />
+    </Suspense>
   );
 }
