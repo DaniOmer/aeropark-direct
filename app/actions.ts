@@ -750,6 +750,64 @@ export const deleteReservation = async (
   return { success: true };
 };
 
+// Create a new user or get existing user by email
+export const createOrGetUserByEmail = async (userData: {
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
+}): Promise<{
+  success: boolean;
+  error?: string;
+  userId?: string;
+  userExists?: boolean; // Added to indicate if the user already exists
+}> => {
+  const supabase = await createClient();
+
+  // Check if user with this email already exists
+  const { data: existingUser, error: userCheckError } = await supabase
+    .from("users")
+    .select("id, email")
+    .eq("email", userData.email)
+    .single();
+
+  if (userCheckError && userCheckError.code !== "PGRST116") {
+    // PGRST116 is the error code for "no rows returned"
+    console.error("Error checking existing user:", userCheckError);
+    return { success: false, error: userCheckError.message };
+  }
+
+  if (existingUser) {
+    // User exists, return their ID and indicate that the user already exists
+    return {
+      success: true,
+      userId: existingUser.id,
+      userExists: true,
+    };
+  }
+
+  // Create a new user in the users table (not in auth)
+  const { data: newUser, error: createUserError } = await supabase
+    .from("users")
+    .insert({
+      email: userData.email,
+      first_name: userData.first_name,
+      last_name: userData.last_name,
+      phone: userData.phone || "",
+      role: "guest", // Mark as guest user
+      password: "********", // No password for guest users
+    })
+    .select("id")
+    .single();
+
+  if (createUserError) {
+    console.error("Error creating guest user:", createUserError);
+    return { success: false, error: createUserError.message };
+  }
+
+  return { success: true, userId: newUser.id };
+};
+
 // Get all users for admin
 export const getAllUsers = async (): Promise<UserData[]> => {
   const supabase = await createClient();

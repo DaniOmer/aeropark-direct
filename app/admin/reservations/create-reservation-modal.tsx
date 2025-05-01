@@ -43,6 +43,17 @@ export default function CreateReservationModal({
   >([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
 
+  // État pour gérer le type d'utilisateur (existant ou nouveau)
+  const [userType, setUserType] = useState<"existing" | "new">("existing");
+
+  // État pour les informations d'un nouvel utilisateur
+  const [newUserData, setNewUserData] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
+
   const [formData, setFormData] = useState<ReservationFormData>({
     user_id: "",
     parking_lot_id: parkingLots.length > 0 ? parkingLots[0].id : "",
@@ -61,6 +72,14 @@ export default function CreateReservationModal({
     if (isOpen) {
       setError(null);
       setCapacityError(null);
+      // Réinitialiser tous les états
+      setUserType("existing");
+      setNewUserData({
+        first_name: "",
+        last_name: "",
+        email: "",
+        phone: "",
+      });
       setFormData({
         user_id: "",
         parking_lot_id: parkingLots.length > 0 ? parkingLots[0].id : "",
@@ -162,12 +181,29 @@ export default function CreateReservationModal({
     }
   }, [isOpen]);
 
+  // Gérer les changements dans les champs du nouvel utilisateur
+  const handleNewUserChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setNewUserData({
+      ...newUserData,
+      [name]: value,
+    });
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
+
+    // Gérer le changement de type d'utilisateur
+    if (name === "userType") {
+      setUserType(value as "existing" | "new");
+      return;
+    }
 
     // Ignorer les champs start_date et end_date car ils sont gérés séparément
     if (name !== "start_date" && name !== "end_date") {
@@ -244,11 +280,38 @@ export default function CreateReservationModal({
     }
 
     try {
-      // Add selected options to form data
-      const dataWithOptions = {
+      // Préparer les données de réservation
+      let dataWithOptions = {
         ...formData,
         options: selectedOptions.length > 0 ? selectedOptions : undefined,
       };
+
+      // Si c'est un nouvel utilisateur, ajouter les informations de l'utilisateur
+      if (userType === "new") {
+        // Vérifier que tous les champs obligatoires sont remplis
+        if (
+          !newUserData.first_name ||
+          !newUserData.last_name ||
+          !newUserData.email
+        ) {
+          setError(
+            "Veuillez remplir tous les champs obligatoires pour le nouvel utilisateur"
+          );
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Ajouter les informations du nouvel utilisateur
+        dataWithOptions = {
+          ...dataWithOptions,
+          new_user: newUserData,
+        } as any; // Utiliser any pour éviter les problèmes de typage
+      } else if (!formData.user_id) {
+        // Si c'est un utilisateur existant, vérifier qu'un utilisateur est sélectionné
+        setError("Veuillez sélectionner un utilisateur");
+        setIsSubmitting(false);
+        return;
+      }
 
       await onSubmit(dataWithOptions);
       onClose();
@@ -302,30 +365,126 @@ export default function CreateReservationModal({
           </div>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-6">
-            {/* Client selection */}
+            {/* Type d'utilisateur */}
             <div>
               <Label
-                htmlFor="user_id"
+                htmlFor="userType"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
-                Client
+                Type de client
               </Label>
               <select
-                id="user_id"
-                name="user_id"
-                value={formData.user_id}
-                onChange={handleChange}
+                id="userType"
+                name="userType"
+                value={userType}
+                onChange={(e) =>
+                  setUserType(e.target.value as "existing" | "new")
+                }
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                required
               >
-                <option value="">Sélectionnez un client</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.first_name} {user.last_name} ({user.email})
-                  </option>
-                ))}
+                <option value="existing">Client existant</option>
+                <option value="new">Nouveau client</option>
               </select>
             </div>
+
+            {/* Client selection or new client form */}
+            {userType === "existing" ? (
+              <div>
+                <Label
+                  htmlFor="user_id"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Client existant
+                </Label>
+                <select
+                  id="user_id"
+                  name="user_id"
+                  value={formData.user_id}
+                  onChange={handleChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                  required={userType === "existing"}
+                >
+                  <option value="">Sélectionnez un client</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.first_name} {user.last_name} ({user.email})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Informations du nouveau client
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="first_name"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Prénom
+                    </Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      value={newUserData.first_name}
+                      onChange={handleNewUserChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      required={userType === "new"}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="last_name"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Nom
+                    </Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      value={newUserData.last_name}
+                      onChange={handleNewUserChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      required={userType === "new"}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={newUserData.email}
+                      onChange={handleNewUserChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                      required={userType === "new"}
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                    >
+                      Téléphone
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      value={newUserData.phone}
+                      onChange={handleNewUserChange}
+                      className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Parking lot selection */}
             <div>

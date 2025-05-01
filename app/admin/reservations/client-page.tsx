@@ -14,6 +14,7 @@ import {
   getParkingLots,
   getFirstParkingLot,
   getReservationById,
+  createOrGetUserByEmail,
 } from "@/app/actions";
 import CreateReservationModal, {
   ReservationFormData,
@@ -194,6 +195,43 @@ export default function ReservationsClientPage({
   // Handle create reservation
   const handleCreateReservation = async (data: ReservationFormData) => {
     try {
+      // Check if this is a new user
+      if ("new_user" in data) {
+        const newUserData = (data as any).new_user;
+
+        // Create or get user using the server action
+        const result = await createOrGetUserByEmail({
+          email: newUserData.email,
+          first_name: newUserData.first_name,
+          last_name: newUserData.last_name,
+          phone: newUserData.phone || "",
+        });
+
+        if (!result.success) {
+          throw new Error(
+            result.error || "Erreur lors de la création de l'utilisateur"
+          );
+        }
+
+        // Notify admin if user already exists
+        if (result.userExists) {
+          addToast(
+            `Un utilisateur avec l'email ${newUserData.email} existe déjà. La réservation sera associée à cet utilisateur.`,
+            "info"
+          );
+        }
+
+        // Update the data with the new user ID
+        data = {
+          ...data,
+          user_id: result.userId!, // Using non-null assertion as we know userId exists if success is true
+        };
+
+        // Remove the new_user field
+        delete (data as any).new_user;
+      }
+
+      // Create the reservation
       const result = await createReservation(data);
 
       if (result.success && result.id) {
