@@ -101,7 +101,7 @@ export function RegisterForm({ message }: RegisterFormProps) {
       className="flex flex-col w-full max-w-md mx-auto"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <h1 className="text-2xl font-medium">Sign up</h1>
+      <h1 className="text-2xl font-medium">S'inscrire</h1>
       <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
         <div>
           <Label htmlFor="first_name">Prénom</Label>

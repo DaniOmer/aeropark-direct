@@ -19,13 +19,13 @@ export default async function Signup(props: {
     <>
       <div className="flex flex-col space-y-4 w-full max-w-md mx-auto">
         <p className="text-sm text text-foreground mb-4">
-          Already have an account?{" "}
+          Vous avez déjà un compte ?{" "}
           <Link className="text-primary font-medium underline" href="/sign-in">
-            Sign in
+            Se connecter
           </Link>
         </p>
         <RegisterForm message={searchParams} />
-        <SmtpMessage />
+        {/* <SmtpMessage /> */}
       </div>
     </>
   );

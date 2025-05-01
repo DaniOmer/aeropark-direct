@@ -47,36 +47,36 @@ function SignInForm() {
       className="flex-1 flex flex-col w-full max-w-md mx-auto"
       onSubmit={handleSubmit}
     >
-      <h1 className="text-2xl font-medium">Sign in</h1>
+      <h1 className="text-2xl font-medium">Se connecter</h1>
       <p className="text-sm text-foreground">
-        Don't have an account?{" "}
+        Vous n'avez pas de compte ?{" "}
         <Link className="text-foreground font-medium underline" href="/sign-up">
-          Sign up
+          S'inscrire
         </Link>
       </p>
       <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
         <Label htmlFor="email">Email</Label>
-        <Input name="email" placeholder="you@example.com" required />
+        <Input name="email" placeholder="vous@exemple.com" required />
         <div className="flex justify-between items-center">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Mot de passe</Label>
           <Link
             className="text-xs text-foreground underline"
             href="/forgot-password"
           >
-            Forgot Password?
+            Mot de passe oublié ?
           </Link>
         </div>
         <Input
           type="password"
           name="password"
-          placeholder="Your password"
+          placeholder="Votre mot de passe"
           required
         />
         {returnUrl && (
           <input type="hidden" name="returnUrl" value={returnUrl} />
         )}
-        <SubmitButton pendingText="Signing In..." disabled={isLoading}>
-          Sign in
+        <SubmitButton pendingText="Connexion en cours..." disabled={isLoading}>
+          Se connecter
         </SubmitButton>
         {errorMessage && (
           <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
@@ -92,7 +92,7 @@ function SignInForm() {
 // Composant principal avec Suspense
 export default function Login() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Chargement...</div>}>
       <SignInForm />
     </Suspense>
   );
