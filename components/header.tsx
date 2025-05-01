@@ -56,6 +56,12 @@ export default function Header() {
             {!loading && user ? (
               <div className="flex items-center gap-4 justify-end">
                 Hey, {user.email}!
+                <Button
+                  onClick={() => router.push("/protected")}
+                  variant={"outline"}
+                >
+                  Mes réservations
+                </Button>
                 <Button onClick={handleSignOut} variant={"outline"}>
                   Se déconnecter
                 </Button>
@@ -125,8 +131,14 @@ export default function Header() {
             </Link>
 
             {!loading && user ? (
-              <div className="flex items-center gap-4 justify-end">
+              <div className="flex flex-col items-center gap-4 justify-end mt-12">
                 Hey, {user.email}!
+                <Button
+                  onClick={() => router.push("/protected")}
+                  variant={"outline"}
+                >
+                  Mes réservations
+                </Button>
                 <Button onClick={handleSignOut} variant={"outline"}>
                   Se déconnecter
                 </Button>

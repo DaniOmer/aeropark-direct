@@ -49,11 +49,18 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    if (request.nextUrl.pathname === "/" && !user.error) {
+    if (
+      request.nextUrl.pathname === "/sign-in" ||
+      (request.nextUrl.pathname === "/sign-up" && userData)
+    ) {
       if (userData?.role === "admin") {
+        console.log("admin");
         return NextResponse.redirect(new URL("/admin", request.url));
-      } else {
+      } else if (userData?.role === "user") {
+        console.log("user");
         return NextResponse.redirect(new URL("/protected", request.url));
+      } else {
+        console.log("no user");
       }
     }
 
