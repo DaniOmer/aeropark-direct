@@ -4,13 +4,12 @@ import { getReservationById } from "@/app/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-export default async function ConfirmationPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+// This is a workaround for the TypeScript error related to PageProps
+async function ConfirmationPageContent(searchParams: {
+  [key: string]: string | string[] | undefined;
 }) {
   // Get reservation ID from query parameters
-  const id = searchParams.id as string;
+  const { id } = await searchParams;
 
   if (!id) {
     redirect("/");
@@ -333,4 +332,9 @@ export default async function ConfirmationPage({
       </div>
     </div>
   );
+}
+
+// Export the page component with the workaround
+export default async function ConfirmationPage({ searchParams }: any) {
+  return ConfirmationPageContent(searchParams);
 }

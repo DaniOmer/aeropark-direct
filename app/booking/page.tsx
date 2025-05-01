@@ -2,10 +2,9 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import BookingForm from "./booking-form";
 
-export default async function BookingPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+// This is a workaround for the TypeScript error related to PageProps
+async function BookingPageContent(searchParams: {
+  [key: string]: string | string[] | undefined;
 }) {
   // Get query parameters
   const start = searchParams.start as string;
@@ -96,4 +95,9 @@ export default async function BookingPage({
       />
     </div>
   );
+}
+
+// Export the page component with the workaround
+export default async function BookingPage({ searchParams }: any) {
+  return BookingPageContent(searchParams);
 }

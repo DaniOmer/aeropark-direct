@@ -3,10 +3,9 @@ import { createClient } from "@/utils/supabase/server";
 import { getReservationById } from "@/app/actions";
 import PaymentForm from "./payment-form";
 
-export default async function PaymentPage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+// This is a workaround for the TypeScript error related to PageProps
+async function PaymentPageContent(searchParams: {
+  [key: string]: string | string[] | undefined;
 }) {
   // Get reservation ID from query parameters
   const { id } = await searchParams;
@@ -189,4 +188,9 @@ export default async function PaymentPage({
       </div>
     </div>
   );
+}
+
+// Export the page component with the workaround
+export default async function PaymentPage({ searchParams }: any) {
+  return PaymentPageContent(searchParams);
 }
