@@ -22,6 +22,12 @@ export default async function ConfirmationPage({
     data: { user },
   } = await supabase.auth.getUser();
 
+  const { data: userData } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", user?.email)
+    .single();
+
   if (!user) {
     redirect("/sign-in");
   }
@@ -30,12 +36,16 @@ export default async function ConfirmationPage({
   const reservation = await getReservationById(id);
 
   if (!reservation) {
-    redirect("/");
+    console.error("Reservation not found");
+    // redirect("/");
+    return <div>Reservation not found</div>;
   }
 
   // Check if the reservation belongs to the logged-in user
-  if (reservation.user_id !== user.id) {
-    redirect("/");
+  if (reservation.user_id !== userData?.id) {
+    console.error("Reservation does not belong to the logged-in user");
+    // redirect("/");
+    return <div>Reservation does not belong to the logged-in user</div>;
   }
 
   // Calculate the number of days
@@ -54,23 +64,77 @@ export default async function ConfirmationPage({
     <div className="container mx-auto py-12 px-4">
       <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-8 w-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold mb-2">Réservation confirmée !</h1>
+          {reservation.status === "confirmed" ? (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 text-green-600 mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold mb-2">
+                Réservation confirmée !
+              </h1>
+            </>
+          ) : reservation.status === "pending" ? (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-100 text-yellow-600 mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold mb-2">
+                Réservation en attente
+              </h1>
+              <p className="text-yellow-600 dark:text-yellow-400 mb-2">
+                Votre paiement est en cours de traitement. La réservation sera
+                confirmée dès que le paiement sera validé.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 text-blue-600 mb-4">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-3xl font-bold mb-2">
+                Réservation {reservation.status}
+              </h1>
+            </>
+          )}
           <p className="text-gray-600 dark:text-gray-400">
             Merci pour votre réservation. Votre numéro de réservation est{" "}
             <span className="font-bold">

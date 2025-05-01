@@ -657,6 +657,48 @@ export const updateReservationStatus = async (
   return { success: true };
 };
 
+// Record a payment for a reservation
+export const recordPayment = async (
+  reservationId: string,
+  amount: number,
+  paymentMethod: string,
+  paymentStatus: string,
+  paymentIntentId?: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  // Insert payment record
+  const { error: paymentError } = await supabase.from("payments").insert([
+    {
+      reservation_id: reservationId,
+      amount,
+      method: paymentMethod,
+      status: paymentStatus,
+      stripe_id: paymentIntentId,
+    },
+  ]);
+
+  if (paymentError) {
+    console.error("Error recording payment:", paymentError);
+    return { success: false, error: paymentError.message };
+  }
+
+  // If payment is successful, update reservation status to confirmed
+  if (paymentStatus === "succeeded") {
+    const { error: statusError } = await supabase
+      .from("reservations")
+      .update({ status: "confirmed" })
+      .eq("id", reservationId);
+
+    if (statusError) {
+      console.error("Error updating reservation status:", statusError);
+      return { success: false, error: statusError.message };
+    }
+  }
+
+  return { success: true };
+};
+
 // Delete a reservation
 export const deleteReservation = async (
   id: string
@@ -804,7 +846,7 @@ export const checkCapacity = async (
     .select("id")
     .eq("parking_lot_id", parkingLotId)
     .eq("vehicle_type", vehicleType)
-    .eq("status", "confirmed")
+    .in("status", ["confirmed", "pending"]) // Consider both confirmed and pending reservations
     .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
 
   // Exclude the current reservation if updating
@@ -865,7 +907,12 @@ const calculateDays = (startDate: string, endDate: string): number => {
 // Create a new reservation with overbooking prevention
 export const createReservation = async (
   reservationData: ReservationWithOptions
-): Promise<{ success: boolean; error?: string; id?: string }> => {
+): Promise<{
+  success: boolean;
+  error?: string;
+  id?: string;
+  totalPrice?: number;
+}> => {
   const supabase = await createClient();
 
   // Check capacity first
@@ -968,7 +1015,7 @@ export const createReservation = async (
       {
         ...reservationDataWithoutOptions,
         total_price: totalPrice,
-        status: "confirmed", // Auto-confirm admin-created reservations
+        status: "pending", // Set status to pending until payment is confirmed
       },
     ])
     .select();
@@ -999,5 +1046,5 @@ export const createReservation = async (
     }
   }
 
-  return { success: true, id: reservationId };
+  return { success: true, id: reservationId, totalPrice };
 };

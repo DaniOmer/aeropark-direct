@@ -117,8 +117,16 @@ export default function BookingForm({
       const result = await createReservation(reservationData);
 
       if (result.success) {
-        // Redirect to confirmation page
-        router.push(`/booking/confirmation?id=${result.id}`);
+        // Redirect to payment page
+        console.log(
+          "Reservation created successfully, redirecting to payment page",
+          result.id
+        );
+
+        router.replace(`/booking/payment?id=${result.id}`);
+
+        // Prevent any further code execution
+        return;
       } else {
         setError(
           result.error ||
