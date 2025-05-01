@@ -149,11 +149,25 @@ export default function Header() {
               </div>
             ) : !loading ? (
               <div className="flex gap-2 my-8">
-                <Button asChild size="sm" variant={"outline"}>
-                  <Link href="/sign-in">Se connecter</Link>
+                <Button
+                  onClick={() => {
+                    router.push("/sign-in");
+                    setIsMenuOpen(false);
+                  }}
+                  size="sm"
+                  variant={"outline"}
+                >
+                  Se connecter
                 </Button>
-                <Button asChild size="sm" variant={"default"}>
-                  <Link href="/sign-up">S&apos;inscrire</Link>
+                <Button
+                  onClick={() => {
+                    router.push("/sign-up");
+                    setIsMenuOpen(false);
+                  }}
+                  size="sm"
+                  variant={"default"}
+                >
+                  S&apos;inscrire
                 </Button>
                 <ThemeSwitcher />
               </div>
