@@ -94,16 +94,88 @@ export default function CreateReservationModal({
     }
   }, [isOpen, parkingLots, addToast]);
 
+  // Générer les options d'heures valides (de 3:30 à 00:30 par dizaine de minutes)
+  const generateTimeOptions = () => {
+    const options = [];
+
+    // Heures de 3 à 23
+    for (let hour = 3; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 10) {
+        // Sauter 3:00, 3:10, 3:20 car on commence à 3:30
+        if (hour === 3 && minute < 30) continue;
+
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const timeValue = `${formattedHour}:${formattedMinute}`;
+        const timeLabel = `${formattedHour}:${formattedMinute}`;
+
+        options.push({ value: timeValue, label: timeLabel });
+      }
+    }
+
+    // Ajouter 00:00, 00:10, 00:20, 00:30
+    for (let minute = 0; minute <= 30; minute += 10) {
+      const timeValue = `00:${minute.toString().padStart(2, "0")}`;
+      const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
+
+      options.push({ value: timeValue, label: timeLabel });
+    }
+
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
+  // États pour gérer séparément les dates et les heures
+  const [startDate, setStartDate] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [endTime, setEndTime] = useState("");
+
+  // Mettre à jour formData quand les dates ou heures changent
+  useEffect(() => {
+    if (startDate && startTime) {
+      setFormData({
+        ...formData,
+        start_date: `${startDate}T${startTime}:00`,
+      });
+    }
+  }, [startDate, startTime]);
+
+  useEffect(() => {
+    if (endDate && endTime) {
+      setFormData({
+        ...formData,
+        end_date: `${endDate}T${endTime}:00`,
+      });
+    }
+  }, [endDate, endTime]);
+
+  // Extraire la date et l'heure quand le modal est ouvert
+  useEffect(() => {
+    if (isOpen) {
+      // Réinitialiser les champs de date et heure
+      setStartDate("");
+      setStartTime("");
+      setEndDate("");
+      setEndTime("");
+    }
+  }, [isOpen]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    // Ignorer les champs start_date et end_date car ils sont gérés séparément
+    if (name !== "start_date" && name !== "end_date") {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
 
     // Clear capacity error when vehicle type or dates change
     if (
@@ -281,44 +353,87 @@ export default function CreateReservationModal({
 
             {/* Dates */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Label
-                  htmlFor="start_date"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Date d'arrivée
-                </Label>
-                <Input
-                  id="start_date"
-                  name="start_date"
-                  type="datetime-local"
-                  value={formData.start_date}
-                  onChange={handleChange}
-                  min={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="start_date"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Date d'arrivée
+                  </Label>
+                  <Input
+                    id="start_date"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    min={format(new Date(), "yyyy-MM-dd")}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="start_time"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Heure d'arrivée
+                  </Label>
+                  <select
+                    id="start_time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required
+                  >
+                    <option value="">Sélectionnez une heure</option>
+                    {timeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-              <div>
-                <Label
-                  htmlFor="end_date"
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                >
-                  Date de départ
-                </Label>
-                <Input
-                  id="end_date"
-                  name="end_date"
-                  type="datetime-local"
-                  value={formData.end_date}
-                  onChange={handleChange}
-                  min={
-                    formData.start_date ||
-                    format(new Date(), "yyyy-MM-dd'T'HH:mm")
-                  }
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  required
-                />
+              <div className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="end_date"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Date de départ
+                  </Label>
+                  <Input
+                    id="end_date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate || format(new Date(), "yyyy-MM-dd")}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="end_time"
+                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                  >
+                    Heure de départ
+                  </Label>
+                  <select
+                    id="end_time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                    required
+                  >
+                    <option value="">Sélectionnez une heure</option>
+                    {timeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
             </div>
 

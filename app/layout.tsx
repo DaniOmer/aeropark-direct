@@ -55,7 +55,7 @@ export default function RootLayout({
                           </h3>
                           <p className="text-muted-foreground text-sm">
                             Parking sécurisé à proximité de l&apos;aéroport, 10
-                            minutes de Orly 4, avec navette gratuite 24h/24 et
+                            minutes de Orly, avec navette gratuite 24h/24 et
                             7j/7.
                           </p>
                         </div>
@@ -114,7 +114,7 @@ export default function RootLayout({
                             <li>3 avenue germaine</li>
                             <li>91170 Vitry-Châtillon</li>
                             <li>Tél: 06 24 72 48 11</li>
-                            <li>Email: contact@parkaero-direct.fr</li>
+                            <li>Email: aeroparkdirect@hotmail.com</li>
                           </ul>
                         </div>
 

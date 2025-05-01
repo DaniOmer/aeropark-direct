@@ -76,6 +76,38 @@ export default function PricingCalculator({
     { option_id: string; quantity: number }[]
   >([]);
 
+  // Générer les options d'heures valides (de 3:30 à 00:30 par dizaine de minutes)
+  const generateTimeOptions = () => {
+    const options = [];
+
+    // Heures de 3 à 23
+    for (let hour = 3; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 10) {
+        // Sauter 3:00, 3:10, 3:20 car on commence à 3:30
+        if (hour === 3 && minute < 30) continue;
+
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const timeValue = `${formattedHour}:${formattedMinute}`;
+        const timeLabel = `${formattedHour}:${formattedMinute}`;
+
+        options.push({ value: timeValue, label: timeLabel });
+      }
+    }
+
+    // Ajouter 00:00, 00:10, 00:20, 00:30
+    for (let minute = 0; minute <= 30; minute += 10) {
+      const timeValue = `00:${minute.toString().padStart(2, "0")}`;
+      const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
+
+      options.push({ value: timeValue, label: timeLabel });
+    }
+
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
   // Reset the calculated price when inputs change
   useEffect(() => {
     setCalculatedPrice(null);
@@ -109,6 +141,11 @@ export default function PricingCalculator({
   const handleCalculate = () => {
     if (!startDate || !endDate) {
       alert("Veuillez sélectionner les dates d'arrivée et de départ");
+      return;
+    }
+
+    if (!startTime || !endTime) {
+      alert("Veuillez sélectionner les heures d'arrivée et de départ");
       return;
     }
 
@@ -173,21 +210,14 @@ export default function PricingCalculator({
               value={startTime}
               onChange={(e) => setStartTime(e.target.value)}
               className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              required
             >
               <option value="">Sélectionnez une heure</option>
-              <option value="08:00">08:00</option>
-              <option value="09:00">09:00</option>
-              <option value="10:00">10:00</option>
-              <option value="11:00">11:00</option>
-              <option value="12:00">12:00</option>
-              <option value="13:00">13:00</option>
-              <option value="14:00">14:00</option>
-              <option value="15:00">15:00</option>
-              <option value="16:00">16:00</option>
-              <option value="17:00">17:00</option>
-              <option value="18:00">18:00</option>
-              <option value="19:00">19:00</option>
-              <option value="20:00">20:00</option>
+              {timeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -221,21 +251,14 @@ export default function PricingCalculator({
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              required
             >
               <option value="">Sélectionnez une heure</option>
-              <option value="08:00">08:00</option>
-              <option value="09:00">09:00</option>
-              <option value="10:00">10:00</option>
-              <option value="11:00">11:00</option>
-              <option value="12:00">12:00</option>
-              <option value="13:00">13:00</option>
-              <option value="14:00">14:00</option>
-              <option value="15:00">15:00</option>
-              <option value="16:00">16:00</option>
-              <option value="17:00">17:00</option>
-              <option value="18:00">18:00</option>
-              <option value="19:00">19:00</option>
-              <option value="20:00">20:00</option>
+              {timeOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>

@@ -17,6 +17,38 @@ export default function ReservationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Générer les options d'heures valides (de 3:30 à 00:30 par dizaine de minutes)
+  const generateTimeOptions = () => {
+    const options = [];
+
+    // Heures de 3 à 23
+    for (let hour = 3; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 10) {
+        // Sauter 3:00, 3:10, 3:20 car on commence à 3:30
+        if (hour === 3 && minute < 30) continue;
+
+        const formattedHour = hour.toString().padStart(2, "0");
+        const formattedMinute = minute.toString().padStart(2, "0");
+        const timeValue = `${formattedHour}:${formattedMinute}`;
+        const timeLabel = `${formattedHour}:${formattedMinute}`;
+
+        options.push({ value: timeValue, label: timeLabel });
+      }
+    }
+
+    // Ajouter 00:00, 00:10, 00:20, 00:30
+    for (let minute = 0; minute <= 30; minute += 10) {
+      const timeValue = `00:${minute.toString().padStart(2, "0")}`;
+      const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
+
+      options.push({ value: timeValue, label: timeLabel });
+    }
+
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -170,14 +202,20 @@ export default function ReservationForm() {
                     Heure
                   </Label>
                 </div>
-                <Input
+                <select
                   id="startTime"
-                  type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
                   required
-                />
+                >
+                  <option value="">Sélectionnez une heure</option>
+                  {timeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
 
@@ -234,14 +272,20 @@ export default function ReservationForm() {
                     Heure
                   </Label>
                 </div>
-                <Input
+                <select
                   id="endTime"
-                  type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
                   required
-                />
+                >
+                  <option value="">Sélectionnez une heure</option>
+                  {timeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
