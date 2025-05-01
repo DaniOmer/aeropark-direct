@@ -9,6 +9,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { signUpAction, SignUpActionResult } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { useEffect, useState, useTransition } from "react";
+import { useSearchParams } from "next/navigation";
 
 const schema = yup.object().shape({
   email: yup.string().email("Email invalide").required("Email requis"),
@@ -31,6 +32,9 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ message }: RegisterFormProps) {
+  const searchParams = useSearchParams();
+  const emailFromParams = searchParams?.get("email") || "";
+
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const {
@@ -38,9 +42,20 @@ export function RegisterForm({ message }: RegisterFormProps) {
     handleSubmit,
     formState: { errors },
     setError,
+    setValue,
   } = useForm<FormData>({
     resolver: yupResolver(schema),
+    defaultValues: {
+      email: emailFromParams,
+    },
   });
+
+  // Pre-fill email from URL parameter
+  useEffect(() => {
+    if (emailFromParams) {
+      setValue("email", emailFromParams);
+    }
+  }, [emailFromParams, setValue]);
 
   // Gestion des erreurs serveur
   useEffect(() => {

@@ -84,9 +84,9 @@ async function BookingPageContent(searchParams: {
       {userData ? (
         // User is logged in, show regular booking form
         <BookingForm
-          startDate={start}
-          endDate={end}
-          vehicleType={vehicle}
+          startDate={start as string}
+          endDate={end as string}
+          vehicleType={vehicle as string}
           user={userData}
           parkingLot={parkingLot}
           options={options || []}
@@ -95,9 +95,9 @@ async function BookingPageContent(searchParams: {
       ) : (
         // User is not logged in, show guest booking form
         <GuestBookingForm
-          startDate={start}
-          endDate={end}
-          vehicleType={vehicle}
+          startDate={start as string}
+          endDate={end as string}
+          vehicleType={vehicle as string}
           parkingLot={parkingLot}
           options={options || []}
           priceData={priceData}

@@ -15,36 +15,44 @@ async function ConfirmationPageContent(searchParams: {
     redirect("/");
   }
 
-  // Check if user is logged in
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: userData } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", user?.email)
-    .single();
-
-  if (!user) {
-    redirect("/sign-in");
-  }
-
   // Get reservation details
   const reservation = await getReservationById(id as string);
 
   if (!reservation) {
     console.error("Reservation not found");
-    // redirect("/");
     return <div>Reservation not found</div>;
   }
 
-  // Check if the reservation belongs to the logged-in user
-  if (reservation.user_id !== userData?.id) {
-    console.error("Reservation does not belong to the logged-in user");
-    // redirect("/");
-    return <div>Reservation does not belong to the logged-in user</div>;
+  // Get the user associated with the reservation
+  const supabase = await createClient();
+  const { data: reservationUser } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", reservation.user_id)
+    .single();
+
+  if (!reservationUser) {
+    console.error("No user found for this reservation");
+    return <div>No user found for this reservation</div>;
+  }
+
+  // If the user is not a guest, check if they are logged in
+  if (reservationUser.role !== "guest") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", user?.email)
+      .single();
+
+    // If not logged in or not the reservation owner, redirect to login
+    if (!user || reservation.user_id !== userData?.id) {
+      console.error("User not authorized to view this reservation");
+      return <div>Vous n'êtes pas autorisé à accéder à cette réservation</div>;
+    }
   }
 
   // Calculate the number of days
@@ -322,12 +330,30 @@ async function ConfirmationPageContent(searchParams: {
         <div className="mt-8 text-center">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             Un email de confirmation a été envoyé à votre adresse email.
+            {reservationUser.role === "guest" && (
+              <span className="block mt-2 text-sm">
+                Vous avez réservé en tant qu'invité. Pour accéder à votre
+                réservation ultérieurement, veuillez créer un compte avec
+                l'email {reservationUser.email}.
+              </span>
+            )}
           </p>
-          <Link href="/">
-            <Button className="bg-primary hover:bg-primary/90 text-white font-medium px-8 py-3 rounded-md">
-              Retour à l'accueil
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/">
+              <Button className="bg-primary hover:bg-primary/90 text-white font-medium px-8 py-3 rounded-md">
+                Retour à l'accueil
+              </Button>
+            </Link>
+            {reservationUser.role === "guest" && (
+              <Link
+                href={`/sign-up?email=${encodeURIComponent(reservationUser.email)}`}
+              >
+                <Button className="bg-secondary hover:bg-secondary/90 text-white font-medium px-8 py-3 rounded-md">
+                  Créer un compte
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>
