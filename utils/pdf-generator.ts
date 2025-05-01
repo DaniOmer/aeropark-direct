@@ -122,7 +122,7 @@ export const generateReservationPDF = (
     doc.setPage(i);
     doc.setFontSize(10);
     doc.text(
-      "AeroPark Direct - Votre solution de stationnement aéroportuaire",
+      "ParkAero Direct - Votre solution de stationnement aéroportuaire",
       doc.internal.pageSize.getWidth() / 2,
       doc.internal.pageSize.getHeight() - 10,
       { align: "center" }
@@ -173,7 +173,7 @@ export const generateReservationsListPDF = (
     doc.setPage(i);
     doc.setFontSize(10);
     doc.text(
-      "AeroPark Direct - Votre solution de stationnement aéroportuaire",
+      "ParkAero Direct - Votre solution de stationnement aéroportuaire",
       doc.internal.pageSize.getWidth() / 2,
       doc.internal.pageSize.getHeight() - 10,
       { align: "center" }

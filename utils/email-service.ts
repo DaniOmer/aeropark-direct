@@ -28,7 +28,7 @@ export async function sendEmail(emailData: EmailData): Promise<any> {
 
     // Set sender (default if not provided)
     sendSmtpEmail.sender = emailData.sender || {
-      name: "AeroPark Direct",
+      name: "ParkAero Direct",
       email: "ddaniomer95@gmail.com",
     };
 
@@ -144,7 +144,7 @@ export function generateAdminNotificationEmail(
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Nouvelle réservation - AeroPark Direct</title>
+      <title>Nouvelle réservation - ParkAero Direct</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
@@ -272,7 +272,7 @@ export function generateAdminNotificationEmail(
       </div>
       
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af;">
-        <p>© ${new Date().getFullYear()} AeroPark Direct. Tous droits réservés.</p>
+        <p>© ${new Date().getFullYear()} ParkAero Direct. Tous droits réservés.</p>
       </div>
     </body>
     </html>
@@ -360,7 +360,7 @@ export function generateReservationConfirmationEmail(reservation: any): string {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Confirmation de réservation - AeroPark Direct</title>
+      <title>Confirmation de réservation - ParkAero Direct</title>
     </head>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
       <div style="text-align: center; margin-bottom: 30px;">
@@ -463,12 +463,12 @@ export function generateReservationConfirmationEmail(reservation: any): string {
       </div>
       
       <div style="text-align: center; margin-top: 40px; color: #6b7280;">
-        <p>Merci d'avoir choisi AeroPark Direct pour votre stationnement.</p>
+        <p>Merci d'avoir choisi ParkAero Direct pour votre stationnement.</p>
         <p>Si vous avez des questions, n'hésitez pas à nous contacter.</p>
       </div>
       
       <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af;">
-        <p>© ${new Date().getFullYear()} AeroPark Direct. Tous droits réservés.</p>
+        <p>© ${new Date().getFullYear()} ParkAero Direct. Tous droits réservés.</p>
       </div>
     </body>
     </html>
