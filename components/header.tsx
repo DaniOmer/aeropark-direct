@@ -134,7 +134,10 @@ export default function Header() {
               <div className="flex flex-col items-center gap-4 justify-end mt-12">
                 Hey, {user.email}!
                 <Button
-                  onClick={() => router.push("/protected")}
+                  onClick={() => {
+                    router.push("/protected");
+                    setIsMenuOpen(false);
+                  }}
                   variant={"outline"}
                 >
                   Mes réservations

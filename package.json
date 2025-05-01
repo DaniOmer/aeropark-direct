@@ -12,6 +12,7 @@
     "db:types": "npx supabase gen types typescript --project-id zybqqwjtapgsprvtfafg > types/supabase.ts"
   },
   "dependencies": {
+    "@getbrevo/brevo": "^2.2.0",
     "@hookform/resolvers": "^5.0.1",
     "@radix-ui/react-checkbox": "^1.1.1",
     "@radix-ui/react-dropdown-menu": "^2.1.1",

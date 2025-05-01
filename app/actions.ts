@@ -694,6 +694,41 @@ export const recordPayment = async (
       console.error("Error updating reservation status:", statusError);
       return { success: false, error: statusError.message };
     }
+
+    // Trigger the webhook to send confirmation email
+    try {
+      // Use absolute URL for the webhook
+      // In server actions, we need to use a hardcoded base URL since we can't access the request object
+      const baseUrl =
+        process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+      const webhookUrl = `${baseUrl}/api/payment-webhook`;
+
+      console.log("Calling webhook at:", webhookUrl);
+
+      const response = await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reservationId,
+          paymentStatus,
+          paymentId: paymentIntentId,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error triggering payment webhook:", errorData);
+        // We don't return an error here as the payment was successful
+        // The email can be sent manually if needed
+      } else {
+        console.log("Webhook called successfully");
+      }
+    } catch (webhookError) {
+      console.error("Error calling payment webhook:", webhookError);
+      // We don't return an error here as the payment was successful
+    }
   }
 
   return { success: true };

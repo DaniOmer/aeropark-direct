@@ -107,13 +107,14 @@ export async function POST(request: NextRequest) {
       console.log("Using fallback for development/testing purposes");
 
       // Record a payment in the database
+      const paymentId = `fallback_${Date.now()}`;
       const { error: paymentError } = await supabase.from("payments").insert([
         {
           reservation_id: reservationId,
           amount,
           method: "card",
           status: "succeeded",
-          stripe: `fallback_${Date.now()}`,
+          stripe_id: paymentId,
         },
       ]);
 
@@ -138,6 +139,38 @@ export async function POST(request: NextRequest) {
           { error: "Failed to update reservation status" },
           { status: 500 }
         );
+      }
+
+      // Trigger the webhook to send confirmation email
+      try {
+        // Build the absolute URL for the webhook
+        const baseUrl = new URL(request.url).origin;
+        const webhookUrl = `${baseUrl}/api/payment-webhook`;
+
+        console.log("Calling webhook at:", webhookUrl);
+
+        const webhookResponse = await fetch(webhookUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reservationId,
+            paymentStatus: "succeeded",
+            paymentId,
+          }),
+        });
+
+        if (!webhookResponse.ok) {
+          console.error("Error triggering payment webhook in fallback mode");
+          // We don't return an error here as the payment was successful
+        }
+      } catch (webhookError) {
+        console.error(
+          "Error calling payment webhook in fallback mode:",
+          webhookError
+        );
+        // We don't return an error here as the payment was successful
       }
 
       // Return a success response to allow the flow to continue
