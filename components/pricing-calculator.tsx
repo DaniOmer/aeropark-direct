@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { Checkbox } from "./ui/checkbox";
 import type { UIPricingPlan } from "@/app/tarifs/types";
+import type { OptionData } from "@/app/actions";
 
 // Function to calculate the number of days between two dates
 const calculateDays = (startDate: string, endDate: string): number => {
@@ -56,10 +58,12 @@ const calculatePrice = (
 
 type PricingCalculatorProps = {
   pricingPlans: UIPricingPlan[];
+  options: OptionData[];
 };
 
 export default function PricingCalculator({
   pricingPlans,
+  options,
 }: PricingCalculatorProps) {
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -68,11 +72,39 @@ export default function PricingCalculator({
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<UIPricingPlan | null>(null);
   const [days, setDays] = useState<number>(0);
+  const [selectedOptions, setSelectedOptions] = useState<
+    { option_id: string; quantity: number }[]
+  >([]);
 
   // Reset the calculated price when inputs change
   useEffect(() => {
     setCalculatedPrice(null);
-  }, [startDate, startTime, endDate, endTime]);
+  }, [startDate, startTime, endDate, endTime, selectedOptions]);
+
+  // Handle option selection
+  const handleOptionChange = (optionId: string, checked: boolean) => {
+    if (checked) {
+      // Add option with quantity 1
+      setSelectedOptions([
+        ...selectedOptions,
+        { option_id: optionId, quantity: 1 },
+      ]);
+    } else {
+      // Remove option
+      setSelectedOptions(
+        selectedOptions.filter((opt) => opt.option_id !== optionId)
+      );
+    }
+  };
+
+  // Handle option quantity change
+  const handleQuantityChange = (optionId: string, quantity: number) => {
+    setSelectedOptions(
+      selectedOptions.map((opt) =>
+        opt.option_id === optionId ? { ...opt, quantity } : opt
+      )
+    );
+  };
 
   const handleCalculate = () => {
     if (!startDate || !endDate) {
@@ -84,12 +116,22 @@ export default function PricingCalculator({
     setDays(calculatedDays);
 
     if (calculatedDays <= 0) {
-      alert("La date de départ doit être postérieure à la date d'arrivée");
+      alert(
+        "La date de départ ne doit pas être antérieure à la date d'arrivée"
+      );
       return;
     }
 
     const { price, plan } = calculatePrice(pricingPlans, calculatedDays);
-    setCalculatedPrice(price);
+
+    // Calculate options price
+    const optionsPrice = selectedOptions.reduce((total, opt) => {
+      const option = options.find((o) => o.id === opt.option_id);
+      return total + (option ? option.price * opt.quantity : 0);
+    }, 0);
+
+    // Add options price to total
+    setCalculatedPrice(price + optionsPrice);
     setSelectedPlan(plan);
   };
 
@@ -163,6 +205,7 @@ export default function PricingCalculator({
               id="departure-date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
+              min={startDate || undefined}
               className="w-full"
             />
           </div>
@@ -198,6 +241,80 @@ export default function PricingCalculator({
         </div>
       </div>
 
+      {/* Options Section */}
+      {options.length > 0 && (
+        <div className="mt-6">
+          <h3 className="text-lg font-bold mb-4">Services additionnels</h3>
+          <div className="space-y-4">
+            {options.map((option) => {
+              const isSelected = selectedOptions.some(
+                (opt) => opt.option_id === option.id
+              );
+              const selectedOption = selectedOptions.find(
+                (opt) => opt.option_id === option.id
+              );
+
+              return (
+                <div
+                  key={option.id}
+                  className="border border-gray-200 dark:border-gray-700 rounded-md p-4"
+                >
+                  <div className="flex items-start">
+                    <div className="flex h-5 items-center">
+                      <Checkbox
+                        id={`option-${option.id}`}
+                        checked={isSelected}
+                        onCheckedChange={(checked) =>
+                          handleOptionChange(option.id, checked as boolean)
+                        }
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </div>
+                    <div className="ml-3 text-sm">
+                      <Label
+                        htmlFor={`option-${option.id}`}
+                        className="font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        {option.name} - {option.price} €
+                      </Label>
+                      {option.description && (
+                        <p className="text-gray-500 dark:text-gray-400 mt-1">
+                          {option.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {isSelected && (
+                    <div className="mt-3 ml-7">
+                      <Label
+                        htmlFor={`quantity-${option.id}`}
+                        className="block text-sm font-medium mb-1"
+                      >
+                        Quantité
+                      </Label>
+                      <Input
+                        id={`quantity-${option.id}`}
+                        type="number"
+                        min="1"
+                        value={selectedOption?.quantity || 1}
+                        onChange={(e) =>
+                          handleQuantityChange(
+                            option.id,
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-24"
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mt-6 flex flex-col items-center">
         <Button
           onClick={handleCalculate}
@@ -207,28 +324,92 @@ export default function PricingCalculator({
         </Button>
 
         {calculatedPrice !== null && selectedPlan && (
-          <div className="bg-secondary p-6 rounded-lg w-full max-w-md text-center">
-            <h3 className="text-xl font-bold mb-2">Devis estimatif</h3>
-            <p className="mb-2">
-              Durée: {days} jour{days > 1 ? "s" : ""}
-            </p>
-            <p className="mb-2">Forfait: {selectedPlan.name}</p>
-            <p className="text-2xl font-bold text-primary">
-              {calculatedPrice.toFixed(2)}€
-            </p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Prix de base: {selectedPlan.price}€ pour{" "}
-              {selectedPlan.base_duration_days} jours
-              {days > selectedPlan.base_duration_days && (
+          <div className="bg-secondary p-6 rounded-lg w-full max-w-md">
+            <h3 className="text-xl font-bold mb-2 text-center">
+              Devis estimatif
+            </h3>
+            <div className="mb-4">
+              <div className="flex justify-between mb-2">
+                <span>Durée:</span>
+                <span>
+                  {days} jour{days > 1 ? "s" : ""}
+                </span>
+              </div>
+              <div className="flex justify-between mb-2">
+                <span>Forfait:</span>
+                <span>{selectedPlan.name}</span>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mb-4">
+              <div className="flex justify-between">
+                <span className="text-base font-medium">Prix de base</span>
+                <span className="text-base">
+                  {selectedPlan.price}€
+                  {days > selectedPlan.base_duration_days && (
+                    <>
+                      +{" "}
+                      {(days - selectedPlan.base_duration_days) *
+                        selectedPlan.additional_day_price}
+                      €
+                    </>
+                  )}
+                </span>
+              </div>
+
+              {/* Show selected options */}
+              {selectedOptions.length > 0 && (
                 <>
-                  <br />+ {days - selectedPlan.base_duration_days} jour(s)
-                  supplémentaire(s) à {selectedPlan.additional_day_price}€/jour
+                  <div className="flex justify-between mt-2">
+                    <span className="text-base font-medium">Options</span>
+                    <span className="text-base">
+                      {selectedOptions.reduce((total, opt) => {
+                        const option = options.find(
+                          (o) => o.id === opt.option_id
+                        );
+                        return (
+                          total + (option ? option.price * opt.quantity : 0)
+                        );
+                      }, 0)}
+                      €
+                    </span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-500">
+                    {selectedOptions.map((opt) => {
+                      const option = options.find(
+                        (o) => o.id === opt.option_id
+                      );
+                      return option ? (
+                        <div
+                          key={opt.option_id}
+                          className="flex justify-between"
+                        >
+                          <span>
+                            {option.name} x{opt.quantity}
+                          </span>
+                          <span>
+                            {(option.price * opt.quantity).toFixed(2)}€
+                          </span>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
                 </>
               )}
-            </p>
-            <Button className="mt-4 bg-primary text-primary-foreground hover:bg-primary/90">
-              Réserver maintenant
-            </Button>
+
+              <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <span className="text-lg font-bold">Total</span>
+                <span className="text-lg font-bold">
+                  {calculatedPrice.toFixed(2)}€
+                </span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
+                Réserver maintenant
+              </Button>
+            </div>
           </div>
         )}
       </div>

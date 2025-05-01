@@ -1,5 +1,10 @@
 import React from "react";
-import { getPricingData, type PriceData } from "../actions";
+import {
+  getPricingData,
+  getAllOptionsData,
+  type PriceData,
+  type OptionData,
+} from "../actions";
 import { UIPricingPlan } from "./types";
 import PricingCalculator from "@/components/pricing-calculator";
 
@@ -52,15 +57,15 @@ const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
       name = "Semaine";
       duration = `1-${price.base_duration_days} jours`;
       additionalFeatures.push(
-        "Assistance prioritaire",
-        "Place de parking préférentielle"
+        "Assistance prioritaire"
+        // "Place de parking préférentielle"
       );
     } else {
       name = "Longue durée";
       duration = `${price.base_duration_days}+ jours`;
       additionalFeatures.push(
         "Assistance prioritaire",
-        "Place de parking préférentielle",
+        // "Place de parking préférentielle",
         "Vérification hebdomadaire du véhicule"
       );
     }
@@ -85,37 +90,16 @@ async function getPricingPlans() {
   return transformPricingData(prices);
 }
 
-// Additional services - these could also come from the database in a future update
-const additionalServices = [
-  {
-    id: 1,
-    name: "Lavage extérieur",
-    price: 19.99,
-    description: "Nettoyage complet de l'extérieur de votre véhicule",
-  },
-  {
-    id: 2,
-    name: "Lavage intérieur",
-    price: 29.99,
-    description: "Nettoyage complet de l'intérieur de votre véhicule",
-  },
-  {
-    id: 3,
-    name: "Lavage complet",
-    price: 44.99,
-    description: "Nettoyage complet intérieur et extérieur",
-  },
-  {
-    id: 4,
-    name: "Contrôle technique",
-    price: 79.99,
-    description:
-      "Vérification complète de votre véhicule pendant votre absence",
-  },
-];
+// Fetch options data from the database
+async function getOptions() {
+  const options = await getAllOptionsData();
+  // Filter only active options
+  return options.filter((option) => option.is_active);
+}
 
 export default async function TarifsPage() {
   const pricingData = await getPricingPlans();
+  const additionalServices = await getOptions();
   return (
     <div className="flex flex-col gap-16">
       {/* Hero Section */}
@@ -244,7 +228,10 @@ export default async function TarifsPage() {
 
       {/* Pricing Calculator */}
       <section className="container mx-auto px-4">
-        <PricingCalculator pricingPlans={pricingData} />
+        <PricingCalculator
+          pricingPlans={pricingData}
+          options={additionalServices}
+        />
       </section>
 
       {/* FAQ Section */}
