@@ -1,19 +1,51 @@
-import { signInAction } from "@/app/actions";
+"use client";
+
 import { FormMessage, Message } from "@/components/form-message";
 import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { FormEvent, useState } from "react";
 
-type SearchParams = Message & { returnUrl?: string };
+export default function Login() {
+  const searchParams = useSearchParams();
+  const returnUrl = searchParams?.get("returnUrl") || "";
+  const error = searchParams?.get("error") || "";
+  const success = searchParams?.get("success") || "";
 
-export default async function Login(props: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const searchParams = await props.searchParams;
-  const returnUrl = searchParams?.returnUrl || "";
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(error);
+  const { signIn } = useAuth();
+  const router = useRouter();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage("");
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      await signIn(email, password);
+      router.push(returnUrl || "/protected");
+    } catch (error: any) {
+      setErrorMessage(
+        error.message || "Une erreur s'est produite lors de la connexion."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <form className="flex-1 flex flex-col w-full max-w-md mx-auto">
+    <form
+      className="flex-1 flex flex-col w-full max-w-md mx-auto"
+      onSubmit={handleSubmit}
+    >
       <h1 className="text-2xl font-medium">Sign in</h1>
       <p className="text-sm text-foreground">
         Don't have an account?{" "}
@@ -42,10 +74,15 @@ export default async function Login(props: {
         {returnUrl && (
           <input type="hidden" name="returnUrl" value={returnUrl} />
         )}
-        <SubmitButton pendingText="Signing In..." formAction={signInAction}>
+        <SubmitButton pendingText="Signing In..." disabled={isLoading}>
           Sign in
         </SubmitButton>
-        <FormMessage message={searchParams} />
+        {errorMessage && (
+          <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
+        )}
+        {success && (
+          <div className="text-green-500 text-sm mt-2">{success}</div>
+        )}
       </div>
     </form>
   );

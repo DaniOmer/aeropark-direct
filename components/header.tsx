@@ -4,40 +4,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { MenuIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Logo from "@/public/park-aero.jpg";
-import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { ThemeSwitcher } from "./theme-switcher";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, signOut } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-      setLoading(false);
-    };
-
-    fetchUser();
-  }, []);
-
   const handleSignOut = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.refresh();
   };
-
-  // UN soucis avec le user
-  // il n'est pas mis à jour lorsque l'utilisateur se connecte
-  // il faut rafraichir la page pour que le user soit mis à jour
-  // console.log("user", user);
 
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
@@ -72,7 +53,7 @@ export default function Header() {
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-4">
-            {user ? (
+            {!loading && user ? (
               <div className="flex items-center gap-4 justify-end">
                 Hey, {user.email}!
                 <Button onClick={handleSignOut} variant={"outline"}>
@@ -80,7 +61,7 @@ export default function Header() {
                 </Button>
                 <ThemeSwitcher />
               </div>
-            ) : (
+            ) : !loading ? (
               <div className="flex gap-2">
                 <Button asChild size="sm" variant={"outline"}>
                   <Link href="/sign-in">Se connecter</Link>
@@ -88,6 +69,10 @@ export default function Header() {
                 <Button asChild size="sm" variant={"default"}>
                   <Link href="/sign-up">S&apos;inscrire</Link>
                 </Button>
+                <ThemeSwitcher />
+              </div>
+            ) : (
+              <div className="flex gap-2">
                 <ThemeSwitcher />
               </div>
             )}
@@ -139,15 +124,29 @@ export default function Header() {
               Contact
             </Link>
 
-            <div className="flex gap-2 my-8">
-              <Button asChild size="sm" variant={"outline"}>
-                <Link href="/sign-in">Se connecter</Link>
-              </Button>
-              <Button asChild size="sm" variant={"default"}>
-                <Link href="/sign-up">S&apos;inscrire</Link>
-              </Button>
-              <ThemeSwitcher />
-            </div>
+            {!loading && user ? (
+              <div className="flex items-center gap-4 justify-end">
+                Hey, {user.email}!
+                <Button onClick={handleSignOut} variant={"outline"}>
+                  Se déconnecter
+                </Button>
+                <ThemeSwitcher />
+              </div>
+            ) : !loading ? (
+              <div className="flex gap-2 my-8">
+                <Button asChild size="sm" variant={"outline"}>
+                  <Link href="/sign-in">Se connecter</Link>
+                </Button>
+                <Button asChild size="sm" variant={"default"}>
+                  <Link href="/sign-up">S&apos;inscrire</Link>
+                </Button>
+                <ThemeSwitcher />
+              </div>
+            ) : (
+              <div className="flex gap-2 my-8">
+                <ThemeSwitcher />
+              </div>
+            )}
           </div>
         </div>
       )}
