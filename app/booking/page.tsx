@@ -8,9 +8,7 @@ async function BookingPageContent(searchParams: {
   [key: string]: string | string[] | undefined;
 }) {
   // Get query parameters
-  const start = searchParams.start as string;
-  const end = searchParams.end as string;
-  const vehicle = searchParams.vehicle as string;
+  const { start, end, vehicle } = await searchParams;
 
   // Check if all required parameters are present
   if (!start || !end || !vehicle) {

@@ -15,23 +15,6 @@ async function PaymentPageContent(searchParams: {
     return <div>No reservation ID provided</div>;
   }
 
-  // Check if user is logged in
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { data: userData } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", user?.email)
-    .single();
-
-  if (!user) {
-    console.log("No user found");
-    return <div>No user found</div>;
-  }
-
   // Get reservation details
   const reservation = await getReservationById(id as string);
 
@@ -40,10 +23,36 @@ async function PaymentPageContent(searchParams: {
     return <div>No reservation found</div>;
   }
 
-  // Check if the reservation belongs to the logged-in user
-  if (reservation.user_id !== userData?.id) {
-    console.log("Reservation does not belong to the logged-in user");
-    return <div>Reservation does not belong to the logged-in user</div>;
+  // Get the user associated with the reservation
+  const supabase = await createClient();
+  const { data: reservationUser } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", reservation.user_id)
+    .single();
+
+  if (!reservationUser) {
+    console.log("No user found for this reservation");
+    return <div>No user found for this reservation</div>;
+  }
+
+  // If the user is not a guest, check if they are logged in
+  if (reservationUser.role !== "guest") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { data: userData } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", user?.email)
+      .single();
+
+    // If not logged in or not the reservation owner, redirect to login
+    if (!user || reservation.user_id !== userData?.id) {
+      console.log("User not authorized to view this reservation");
+      return <div>Vous n'êtes pas autorisé à accéder à cette réservation</div>;
+    }
   }
 
   // Calculate the number of days
