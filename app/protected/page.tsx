@@ -1,7 +1,7 @@
-import FetchDataSteps from "@/components/tutorial/fetch-data-steps";
 import { createClient } from "@/utils/supabase/server";
-import { InfoIcon } from "lucide-react";
 import { redirect } from "next/navigation";
+import { ReservationWithUserData } from "@/app/actions";
+import UserReservationsClientPage from "./client-page";
 
 export default async function ProtectedPage() {
   const supabase = await createClient();
@@ -14,25 +14,39 @@ export default async function ProtectedPage() {
     return redirect("/sign-in");
   }
 
+  const { data: userData } = await supabase
+    .from("users")
+    .select("*")
+    .eq("email", user.email)
+    .single();
+
+  // Fetch user's reservations
+  const { data: reservations, error } = await supabase
+    .from("reservations")
+    .select(
+      `
+      *,
+      user:user_id (id, email, first_name, last_name, phone, role),
+      parking_lot:parking_lot_id (name),
+      reservation_options (
+        option_id,
+        quantity,
+        option:option_id (name, price)
+      ),
+      payments (id, amount, method, status)
+    `
+    )
+    .eq("user_id", userData?.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching user reservations:", error);
+  }
+
   return (
-    <div className="flex-1 w-full flex flex-col gap-12">
-      <div className="w-full">
-        <div className="bg-accent text-sm p-3 px-5 rounded-md text-foreground flex gap-3 items-center">
-          <InfoIcon size="16" strokeWidth={2} />
-          This is a protected page that you can only see as an authenticated
-          user
-        </div>
-      </div>
-      <div className="flex flex-col gap-2 items-start">
-        <h2 className="font-bold text-2xl mb-4">Your user details</h2>
-        <pre className="text-xs font-mono p-3 rounded border max-h-32 overflow-auto">
-          {JSON.stringify(user, null, 2)}
-        </pre>
-      </div>
-      <div>
-        <h2 className="font-bold text-2xl mb-4">Next steps</h2>
-        <FetchDataSteps />
-      </div>
-    </div>
+    <UserReservationsClientPage
+      initialReservations={(reservations as ReservationWithUserData[]) || []}
+      user={user}
+    />
   );
 }
