@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import BookingForm from "./booking-form";
+import GuestBookingForm from "./guest-booking-form";
 
 // This is a workaround for the TypeScript error related to PageProps
 async function BookingPageContent(searchParams: {
@@ -22,22 +23,20 @@ async function BookingPageContent(searchParams: {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If not logged in, redirect to sign in page with return URL
-  if (!user) {
-    const returnUrl = `/booking?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&vehicle=${encodeURIComponent(vehicle)}`;
-    redirect(`/sign-in?returnUrl=${encodeURIComponent(returnUrl)}`);
-  }
+  // Get user details from the database if user is logged in
+  let userData = null;
+  if (user) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("email", user.email)
+      .single();
 
-  // Get user details from the database
-  const { data: userData, error: userError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", user.email)
-    .single();
-
-  if (userError || !userData) {
-    console.error("Error fetching user data:", userError);
-    redirect("/sign-in");
+    if (error || !data) {
+      console.error("Error fetching user data:", error);
+    } else {
+      userData = data;
+    }
   }
 
   // Get parking lot
@@ -84,15 +83,28 @@ async function BookingPageContent(searchParams: {
         Finaliser votre réservation
       </h1>
 
-      <BookingForm
-        startDate={start}
-        endDate={end}
-        vehicleType={vehicle}
-        user={userData}
-        parkingLot={parkingLot}
-        options={options || []}
-        priceData={priceData}
-      />
+      {userData ? (
+        // User is logged in, show regular booking form
+        <BookingForm
+          startDate={start}
+          endDate={end}
+          vehicleType={vehicle}
+          user={userData}
+          parkingLot={parkingLot}
+          options={options || []}
+          priceData={priceData}
+        />
+      ) : (
+        // User is not logged in, show guest booking form
+        <GuestBookingForm
+          startDate={start}
+          endDate={end}
+          vehicleType={vehicle}
+          parkingLot={parkingLot}
+          options={options || []}
+          priceData={priceData}
+        />
+      )}
     </div>
   );
 }
