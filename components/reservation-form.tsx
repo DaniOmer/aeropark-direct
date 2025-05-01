@@ -1,21 +1,76 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
+import { checkAvailability } from "@/app/actions";
 
 export default function ReservationForm() {
+  const router = useRouter();
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [vehicleType, setVehicleType] = useState("small_car");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission - this would be connected to the reservation system
-    console.log({ startDate, startTime, endDate, endTime });
-    // In a real implementation, this would navigate to a booking details page
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      // Combine date and time
+      const startDateTime = `${startDate}T${startTime}:00`;
+      const endDateTime = `${endDate}T${endTime}:00`;
+
+      // Validate dates
+      const startDateObj = new Date(startDateTime);
+      const endDateObj = new Date(endDateTime);
+      const now = new Date();
+
+      // Check if start date is in the past
+      if (startDateObj < now) {
+        setError("La date d'arrivée ne peut pas être dans le passé");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check if end date is before start date
+      if (endDateObj <= startDateObj) {
+        setError("La date de départ doit être postérieure à la date d'arrivée");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Check availability
+      const result = await checkAvailability(
+        startDateTime,
+        endDateTime,
+        vehicleType
+      );
+
+      if (result.available) {
+        // Redirect to the booking page with query parameters
+        router.push(
+          `/booking?start=${encodeURIComponent(startDateTime)}&end=${encodeURIComponent(
+            endDateTime
+          )}&vehicle=${encodeURIComponent(vehicleType)}`
+        );
+      } else {
+        setError(result.message || "Aucune disponibilité pour ces dates");
+      }
+    } catch (err) {
+      setError(
+        "Une erreur est survenue lors de la vérification des disponibilités"
+      );
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -30,6 +85,38 @@ export default function ReservationForm() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Vehicle Type */}
+            <div className="md:col-span-2">
+              <div className="flex items-center mb-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2 text-primary"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+                <Label htmlFor="vehicleType" className="font-medium">
+                  Type de véhicule
+                </Label>
+              </div>
+              <select
+                id="vehicleType"
+                value={vehicleType}
+                onChange={(e) => setVehicleType(e.target.value)}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
+                required
+              >
+                <option value="small_car">Voiture</option>
+                <option value="small_motorcycle">Moto</option>
+              </select>
+            </div>
             {/* Start Date and Time */}
             <div className="space-y-4">
               <div>
@@ -57,6 +144,7 @@ export default function ReservationForm() {
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
+                  min={new Date().toISOString().split("T")[0]}
                   className="w-full"
                   required
                 />
@@ -120,6 +208,7 @@ export default function ReservationForm() {
                   type="date"
                   value={endDate}
                   onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate || new Date().toISOString().split("T")[0]}
                   className="w-full"
                   required
                 />
@@ -157,12 +246,17 @@ export default function ReservationForm() {
             </div>
           </div>
 
+          {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-md">{error}</div>
+          )}
+
           <div className="flex justify-center pt-4">
             <Button
               type="submit"
               className="bg-primary hover:bg-primary/90 text-white font-medium px-8 py-6 text-lg rounded-md w-full md:w-auto"
+              disabled={isSubmitting}
             >
-              Rechercher
+              {isSubmitting ? "Vérification..." : "Rechercher"}
             </Button>
           </div>
         </form>

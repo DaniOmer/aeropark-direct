@@ -97,6 +97,7 @@ export const signUpAction = async (
 export const signInAction = async (formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const returnUrl = formData.get("returnUrl") as string;
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -106,6 +107,11 @@ export const signInAction = async (formData: FormData) => {
 
   if (error) {
     return encodedRedirect("error", "/sign-in", error.message);
+  }
+
+  // Redirect to returnUrl if provided, otherwise to protected page
+  if (returnUrl) {
+    return redirect(returnUrl);
   }
 
   return redirect("/protected");
@@ -682,6 +688,51 @@ export const getAllUsers = async (): Promise<UserData[]> => {
   }
 
   return data || [];
+};
+
+// Check availability for a given date range and vehicle type
+export const checkAvailability = async (
+  startDate: string,
+  endDate: string,
+  vehicleType: string
+): Promise<{ available: boolean; message?: string; parkingLotId?: string }> => {
+  const supabase = await createClient();
+
+  // Get the first parking lot (since there's only one for now)
+  const { data: parkingLot, error: parkingLotError } = await supabase
+    .from("parking_lots")
+    .select("*")
+    .eq("is_active", true)
+    .limit(1)
+    .single();
+
+  if (parkingLotError || !parkingLot) {
+    console.error("Error fetching parking lot:", parkingLotError);
+    return {
+      available: false,
+      message: "Aucun parking disponible",
+    };
+  }
+
+  // Check capacity
+  const capacityCheck = await checkCapacity(
+    parkingLot.id,
+    vehicleType,
+    startDate,
+    endDate
+  );
+
+  if (!capacityCheck.available) {
+    return {
+      available: false,
+      message: capacityCheck.message || "Pas de disponibilité pour ces dates",
+    };
+  }
+
+  return {
+    available: true,
+    parkingLotId: parkingLot.id,
+  };
 };
 
 // Check if there's enough capacity for a reservation

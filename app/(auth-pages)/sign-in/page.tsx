@@ -5,8 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 
-export default async function Login(props: { searchParams: Promise<Message> }) {
+type SearchParams = Message & { returnUrl?: string };
+
+export default async function Login(props: {
+  searchParams: Promise<SearchParams>;
+}) {
   const searchParams = await props.searchParams;
+  const returnUrl = searchParams?.returnUrl || "";
   return (
     <form className="flex-1 flex flex-col w-full max-w-md mx-auto">
       <h1 className="text-2xl font-medium">Sign in</h1>
@@ -34,6 +39,9 @@ export default async function Login(props: { searchParams: Promise<Message> }) {
           placeholder="Your password"
           required
         />
+        {returnUrl && (
+          <input type="hidden" name="returnUrl" value={returnUrl} />
+        )}
         <SubmitButton pendingText="Signing In..." formAction={signInAction}>
           Sign in
         </SubmitButton>
