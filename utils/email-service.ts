@@ -29,7 +29,7 @@ export async function sendEmail(emailData: EmailData): Promise<any> {
     // Set sender (default if not provided)
     sendSmtpEmail.sender = emailData.sender || {
       name: "ParkAero Direct",
-      email: "ddaniomer95@gmail.com",
+      email: "aeroparkdirect@hotmail.com",
     };
 
     // Set recipients
