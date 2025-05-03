@@ -816,8 +816,6 @@ export const recordPayment = async (
         process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
       const webhookUrl = `${baseUrl}/api/payment-webhook`;
 
-      console.log("Calling webhook at:", webhookUrl);
-
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers: {
