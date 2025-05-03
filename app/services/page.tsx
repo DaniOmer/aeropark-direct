@@ -372,8 +372,8 @@ export default function ServicesPage() {
               </h3>
               <p className="text-muted-foreground">
                 Montez dans notre navette gratuite qui vous déposera directement
-                à votre terminal. À votre retour, appelez-nous et nous viendrons
-                vous chercher.
+                à Orly. À votre retour, appelez-nous et nous viendrons vous
+                chercher.
               </p>
             </div>
           </div>

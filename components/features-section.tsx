@@ -67,7 +67,7 @@ export default function FeaturesSection() {
             <h3 className="text-xl font-bold mb-4">ACCESSIBILITÉ</h3>
             <p className="text-muted-foreground mb-4">
               À <span className="font-semibold">quelques minutes</span> de
-              l&apos;aéroport, avec transfert rapide vers votre terminal.
+              l&apos;aéroport, avec transfert rapide vers Orly.
             </p>
             <p className="text-muted-foreground">
               Notre emplacement stratégique vous permet d&apos;accéder

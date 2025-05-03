@@ -337,8 +337,8 @@ export default function ContactPage() {
                   </h4>
                   <p className="text-sm text-muted-foreground">
                     Notre navette gratuite est disponible 24h/24 et 7j/7. Elle
-                    vous dépose directement à votre terminal et vous récupère à
-                    votre retour.
+                    vous dépose directement à Orly et vous récupère à votre
+                    retour.
                   </p>
                 </div>
                 <div>
