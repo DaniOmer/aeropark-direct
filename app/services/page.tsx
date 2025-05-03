@@ -119,9 +119,9 @@ export default function ServicesPage() {
             </div>
             <h2 className="text-2xl font-bold">Navette Gratuite</h2>
             <p className="text-muted-foreground">
-              Notre service de navette gratuite vous emmène directement à votre
-              terminal et vous récupère à votre retour. Disponible 24h/24 et
-              7j/7, notre navette assure un transfert rapide et confortable.
+              Notre service de navette gratuite vous emmène directement à Orly
+              et vous récupère à votre retour. Disponible 24h/24 et 7j/7, notre
+              navette assure un transfert rapide et confortable.
             </p>
             <ul className="space-y-2 text-muted-foreground">
               <li className="flex items-start gap-2">
@@ -138,7 +138,7 @@ export default function ServicesPage() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span>Transfert gratuit vers tous les terminaux</span>
+                <span>Transfert gratuit vers Orly</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg

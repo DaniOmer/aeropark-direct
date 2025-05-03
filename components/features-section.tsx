@@ -103,9 +103,8 @@ export default function FeaturesSection() {
               sont offerts.
             </p>
             <p className="text-muted-foreground">
-              Nos navettes confortables vous déposent directement à votre
-              terminal et vous récupèrent à votre retour, sans frais
-              supplémentaires.
+              Nos navettes confortables vous déposent directement à Orly et vous
+              récupèrent à votre retour, sans frais supplémentaires.
             </p>
           </div>
         </div>
