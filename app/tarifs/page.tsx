@@ -1,7 +1,7 @@
 import React from "react";
 import {
   getPricingData,
-  getAllOptionsData,
+  getActiveOptionsData,
   type PriceData,
   type OptionData,
 } from "../actions";
@@ -90,11 +90,10 @@ async function getPricingPlans() {
   return transformPricingData(prices);
 }
 
-// Fetch options data from the database
+// Fetch active options data from the database
 async function getOptions() {
-  const options = await getAllOptionsData();
-  // Filter only active options
-  return options.filter((option) => option.is_active);
+  // Use the new function that already filters for active options
+  return await getActiveOptionsData();
 }
 
 export default async function TarifsPage() {
@@ -156,7 +155,7 @@ export default async function TarifsPage() {
                   <p>Frais de retard: {plan.late_fee}€</p>
                 </div>
                 <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature, index) => (
+                  {plan.features.map((feature: string, index: number) => (
                     <li key={index} className="flex items-start gap-2">
                       <svg
                         className="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
@@ -176,7 +175,7 @@ export default async function TarifsPage() {
                   ))}
                 </ul>
                 <a
-                  href="/"
+                  href="/#reservation"
                   className={`w-full inline-flex justify-center items-center rounded-md px-4 py-2 text-sm font-medium ${
                     plan.popular
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -203,7 +202,7 @@ export default async function TarifsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {additionalServices.map((service) => (
+            {additionalServices.map((service: OptionData) => (
               <div
                 key={service.id}
                 className="bg-card p-6 rounded-xl shadow-md flex justify-between items-center"
@@ -216,9 +215,9 @@ export default async function TarifsPage() {
                 </div>
                 <div className="text-right">
                   <p className="text-xl font-bold mb-2">{service.price}€</p>
-                  <button className="text-primary text-sm font-medium hover:underline">
+                  {/* <button className="text-primary text-sm font-medium hover:underline">
                     Ajouter
-                  </button>
+                  </button> */}
                 </div>
               </div>
             ))}
@@ -303,7 +302,7 @@ export default async function TarifsPage() {
             de nos services premium.
           </p>
           <a
-            href="/"
+            href="/#reservation"
             className="inline-flex items-center justify-center rounded-md bg-white text-primary px-6 py-3 text-base font-medium shadow-sm hover:bg-gray-100 transition-colors"
           >
             Réserver maintenant

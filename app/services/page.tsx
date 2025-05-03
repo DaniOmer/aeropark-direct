@@ -78,7 +78,7 @@ export default function ServicesPage() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span>Portail automatique sécurisé</span>
+                <span>Portail sécurisé</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg
@@ -231,7 +231,7 @@ export default function ServicesPage() {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span>Modification gratuite jusqu'à 24h avant l'arrivée</span>
+                <span>Modification possible jusqu'à 24h avant l'arrivée</span>
               </li>
               <li className="flex items-start gap-2">
                 <svg
@@ -293,7 +293,7 @@ export default function ServicesPage() {
                 </svg>
                 <span>Lavage de voiture pendant votre absence</span>
               </li>
-              <li className="flex items-start gap-2">
+              {/* <li className="flex items-start gap-2">
                 <svg
                   className="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
                   fill="none"
@@ -308,7 +308,7 @@ export default function ServicesPage() {
                   />
                 </svg>
                 <span>Contrôle technique de votre véhicule</span>
-              </li>
+              </li> */}
               <li className="flex items-start gap-2">
                 <svg
                   className="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
@@ -391,7 +391,7 @@ export default function ServicesPage() {
             de nos services premium.
           </p>
           <a
-            href="/"
+            href="/#reservation"
             className="inline-flex items-center justify-center rounded-md bg-white text-primary px-6 py-3 text-base font-medium shadow-sm hover:bg-gray-100 transition-colors"
           >
             Réserver maintenant

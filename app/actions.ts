@@ -340,6 +340,24 @@ export const getAllOptionsData = async (): Promise<OptionData[]> => {
   return data || [];
 };
 
+// Fetch active options data for public use
+export const getActiveOptionsData = async (): Promise<OptionData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("options")
+    .select("*")
+    .eq("is_active", true)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Error fetching active options data:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
 // Fetch a single option by ID
 export const getOptionById = async (id: string): Promise<OptionData | null> => {
   const supabase = await createClient();
@@ -574,16 +592,24 @@ export type ReservationWithUserData = ReservationData & {
   }[];
 };
 
-// Fetch all reservations for admin
-export const getAllReservations = async (): Promise<
-  ReservationWithUserData[]
-> => {
+// Fetch all reservations for admin with search and pagination
+export const getAllReservations = async (
+  page: number = 1,
+  pageSize: number = 10,
+  searchQuery?: string
+): Promise<{
+  data: ReservationWithUserData[];
+  count: number;
+}> => {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("reservations")
-    .select(
-      `
+  // Calculate range for pagination
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  // Start building the query
+  let query = supabase.from("reservations").select(
+    `
       *,
       user:user_id (id, email, first_name, last_name, phone, role),
       parking_lot:parking_lot_id (name),
@@ -593,16 +619,29 @@ export const getAllReservations = async (): Promise<
         option:option_id (name, price)
       ),
       payments (id, amount, method, status)
-    `
-    )
-    .order("created_at", { ascending: false });
+    `,
+    { count: "exact" } // Get total count for pagination
+  );
 
-  if (error) {
-    console.error("Error fetching all reservations:", error);
-    return [];
+  // Apply search filter if provided
+  if (searchQuery && searchQuery.trim() !== "") {
+    // Search by reservation number or user email
+    query = query.or(
+      `number.ilike.%${searchQuery}%,user.email.ilike.%${searchQuery}%`
+    );
   }
 
-  return data || [];
+  // Apply pagination and ordering
+  const { data, error, count } = await query
+    .order("created_at", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("Error fetching reservations:", error);
+    return { data: [], count: 0 };
+  }
+
+  return { data: data || [], count: count || 0 };
 };
 
 // Fetch a single reservation by ID

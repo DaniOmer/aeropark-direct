@@ -31,10 +31,20 @@ import { generateReservationsListPDF } from "@/utils/pdf-generator";
 
 export default function ReservationsClientPage({
   initialReservations,
+  totalCount = 0,
+  currentPage = 1,
+  searchQuery = "",
 }: {
   initialReservations: ReservationWithUserData[];
+  totalCount?: number;
+  currentPage?: number;
+  searchQuery?: string;
 }) {
   const [reservations, setReservations] = useState(initialReservations);
+  const [search, setSearch] = useState(searchQuery);
+  const [page, setPage] = useState(currentPage);
+  const [totalReservations, setTotalReservations] = useState(totalCount);
+  const pageSize = 10;
   const [selectedReservation, setSelectedReservation] =
     useState<ReservationWithUserData | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -269,6 +279,43 @@ export default function ReservationsClientPage({
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Gérez les réservations de vos clients
           </p>
+        </div>
+
+        {/* Search input */}
+        <div className="w-full sm:w-auto">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              router.push(
+                `/admin/reservations?search=${encodeURIComponent(search)}`
+              );
+            }}
+            className="flex gap-2"
+          >
+            <input
+              type="text"
+              placeholder="Rechercher par numéro ou email"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            />
+            <Button type="submit">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </Button>
+          </form>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4">
@@ -645,6 +692,79 @@ export default function ReservationsClientPage({
           </table>
         </div>
       </div>
+
+      {/* Pagination */}
+      {totalReservations > pageSize && (
+        <div className="flex justify-center mt-6">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (page > 1) {
+                  const newPage = page - 1;
+                  setPage(newPage);
+                  router.push(
+                    `/admin/reservations?page=${newPage}${
+                      search ? `&search=${encodeURIComponent(search)}` : ""
+                    }`
+                  );
+                }
+              }}
+              disabled={page <= 1}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </Button>
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              Page {page} sur {Math.ceil(totalReservations / pageSize)}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (page < Math.ceil(totalReservations / pageSize)) {
+                  const newPage = page + 1;
+                  setPage(newPage);
+                  router.push(
+                    `/admin/reservations?page=${newPage}${
+                      search ? `&search=${encodeURIComponent(search)}` : ""
+                    }`
+                  );
+                }
+              }}
+              disabled={page >= Math.ceil(totalReservations / pageSize)}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Reservation Details Modal */}
       <ReservationDetailsModal

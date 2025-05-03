@@ -140,12 +140,23 @@ export default function PricingCalculator({
 
   const handleCalculate = () => {
     if (!startDate || !endDate) {
-      alert("Veuillez sélectionner les dates d'arrivée et de départ");
+      alert("Veuillez sélectionner les dates de début et de fin");
       return;
     }
 
     if (!startTime || !endTime) {
-      alert("Veuillez sélectionner les heures d'arrivée et de départ");
+      alert("Veuillez sélectionner les heures de début et de fin");
+      return;
+    }
+
+    // Extra validation to ensure end date is not before start date
+    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const endDateTime = new Date(`${endDate}T${endTime}`);
+
+    if (endDateTime <= startDateTime) {
+      alert(
+        "La date/heure de fin doit être postérieure à la date/heure de début"
+      );
       return;
     }
 
@@ -153,9 +164,7 @@ export default function PricingCalculator({
     setDays(calculatedDays);
 
     if (calculatedDays <= 0) {
-      alert(
-        "La date de départ ne doit pas être antérieure à la date d'arrivée"
-      );
+      alert("La date de fin ne doit pas être antérieure à la date de début");
       return;
     }
 
@@ -168,7 +177,9 @@ export default function PricingCalculator({
     }, 0);
 
     // Add options price to total
-    setCalculatedPrice(price + optionsPrice);
+    const totalPrice = price + optionsPrice;
+
+    setCalculatedPrice(totalPrice);
     setSelectedPlan(plan);
   };
 
@@ -177,7 +188,7 @@ export default function PricingCalculator({
       <h2 className="text-2xl font-bold mb-6">Calculateur de tarif</h2>
       <p className="text-muted-foreground mb-8">
         Pour obtenir un devis précis, veuillez utiliser notre calculateur de
-        tarif en ligne. Entrez simplement vos dates d'arrivée et de départ pour
+        tarif en ligne. Entrez simplement vos dates de début et de fin pour
         connaître le prix exact de votre stationnement.
       </p>
 
@@ -188,14 +199,22 @@ export default function PricingCalculator({
               htmlFor="arrival-date"
               className="block text-sm font-medium mb-1"
             >
-              Date d'arrivée
+              Date de début
             </Label>
             <Input
               type="date"
               id="arrival-date"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                // If end date is before new start date, update end date
+                if (endDate && new Date(e.target.value) > new Date(endDate)) {
+                  setEndDate(e.target.value);
+                }
+              }}
+              min={new Date().toISOString().split("T")[0]} // Set minimum date to today
               className="w-full"
+              required
             />
           </div>
           <div className="mb-4">
@@ -203,7 +222,7 @@ export default function PricingCalculator({
               htmlFor="arrival-time"
               className="block text-sm font-medium mb-1"
             >
-              Heure d'arrivée
+              Heure de début
             </Label>
             <select
               id="arrival-time"
@@ -228,14 +247,27 @@ export default function PricingCalculator({
               htmlFor="departure-date"
               className="block text-sm font-medium mb-1"
             >
-              Date de départ
+              Date de fin
             </Label>
             <Input
               type="date"
               id="departure-date"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              min={startDate || undefined}
+              onChange={(e) => {
+                // Only set the end date if it's not before the start date
+                const newEndDate = e.target.value;
+                if (!startDate || new Date(newEndDate) >= new Date(startDate)) {
+                  setEndDate(newEndDate);
+                } else {
+                  // If invalid date is selected, alert the user
+                  alert(
+                    "La date de fin ne peut pas être antérieure à la date de début"
+                  );
+                  // Reset to start date
+                  setEndDate(startDate);
+                }
+              }}
+              min={startDate || new Date().toISOString().split("T")[0]} // Set minimum date to start date or today
               className="w-full"
             />
           </div>
@@ -244,7 +276,7 @@ export default function PricingCalculator({
               htmlFor="departure-time"
               className="block text-sm font-medium mb-1"
             >
-              Heure de départ
+              Heure de fin
             </Label>
             <select
               id="departure-time"
@@ -284,11 +316,12 @@ export default function PricingCalculator({
                 >
                   <div className="flex items-start">
                     <div className="flex h-5 items-center">
-                      <Checkbox
+                      <input
+                        type="checkbox"
                         id={`option-${option.id}`}
                         checked={isSelected}
-                        onCheckedChange={(checked) =>
-                          handleOptionChange(option.id, checked as boolean)
+                        onChange={(e) =>
+                          handleOptionChange(option.id, e.target.checked)
                         }
                         className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                       />
@@ -340,7 +373,11 @@ export default function PricingCalculator({
 
       <div className="mt-6 flex flex-col items-center">
         <Button
-          onClick={handleCalculate}
+          onClick={(e) => {
+            e.preventDefault(); // Prevent form submission
+            handleCalculate();
+          }}
+          type="button"
           className="inline-flex items-center justify-center rounded-md bg-primary text-primary-foreground px-6 py-3 text-base font-medium shadow-sm hover:bg-primary/90 transition-colors mb-6"
         >
           Calculer le tarif
