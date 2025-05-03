@@ -1,28 +1,36 @@
 import { getAllReservations } from "@/app/actions";
 import ReservationsClientPage from "./client-page";
 
+export const dynamic = "force-dynamic";
+
+interface SearchParams {
+  page?: string;
+  search?: string;
+}
+
 export default async function ReservationsPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined };
+  searchParams: SearchParams;
 }) {
-  // Get search parameters
-  const page = searchParams.page ? parseInt(searchParams.page as string) : 1;
-  const searchQuery = searchParams.search as string | undefined;
+  // Extract and process search parameters
+  const { search: searchQuery, page } = await searchParams;
+
+  const pageNumber = page ? parseInt(page) : 1;
 
   // Fetch reservations with search and pagination
   const { data: reservations, count } = await getAllReservations(
-    page,
+    pageNumber,
     10,
-    searchQuery
+    searchQuery || undefined
   );
 
   return (
     <ReservationsClientPage
       initialReservations={reservations}
       totalCount={count}
-      currentPage={page}
-      searchQuery={searchQuery || ""}
+      currentPage={pageNumber}
+      searchQuery={searchQuery}
     />
   );
 }

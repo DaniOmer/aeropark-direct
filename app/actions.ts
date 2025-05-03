@@ -607,9 +607,94 @@ export const getAllReservations = async (
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  // Start building the query
-  let query = supabase.from("reservations").select(
-    `
+  // If we have a search query, first try to find matching users
+  if (searchQuery && searchQuery.trim() !== "") {
+    const trimmedSearch = searchQuery.trim();
+
+    // First approach: Try to find reservations directly by number
+    const { data: reservationsByNumber, error: numberError } = await supabase
+      .from("reservations")
+      .select(
+        `
+        *,
+        user:user_id (id, email, first_name, last_name, phone, role),
+        parking_lot:parking_lot_id (name),
+        reservation_options (
+          option_id,
+          quantity,
+          option:option_id (name, price)
+        ),
+        payments (id, amount, method, status)
+        `,
+        { count: "exact" }
+      )
+      .ilike("number", `%${trimmedSearch}%`)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (numberError) {
+      console.error("Error searching reservations by number:", numberError);
+    } else if (reservationsByNumber && reservationsByNumber.length > 0) {
+      // Found reservations by number
+      return {
+        data: reservationsByNumber,
+        count: reservationsByNumber.length,
+      };
+    }
+
+    // Second approach: Find users by email, then find their reservations
+    const { data: users, error: userError } = await supabase
+      .from("users")
+      .select("id")
+      .ilike("email", `%${trimmedSearch}%`);
+
+    if (userError) {
+      console.error("Error searching users by email:", userError);
+    } else if (users && users.length > 0) {
+      // Get the user IDs
+      const userIds = users.map((user) => user.id);
+
+      // Find reservations for these users
+      const {
+        data: reservationsByUser,
+        error: reservationError,
+        count,
+      } = await supabase
+        .from("reservations")
+        .select(
+          `
+          *,
+          user:user_id (id, email, first_name, last_name, phone, role),
+          parking_lot:parking_lot_id (name),
+          reservation_options (
+            option_id,
+            quantity,
+            option:option_id (name, price)
+          ),
+          payments (id, amount, method, status)
+          `,
+          { count: "exact" }
+        )
+        .in("user_id", userIds)
+        .order("created_at", { ascending: false })
+        .range(from, to);
+
+      if (reservationError) {
+        console.error("Error fetching reservations by user:", reservationError);
+      } else {
+        return {
+          data: reservationsByUser || [],
+          count: count || 0,
+        };
+      }
+    }
+  }
+
+  // Default case: no search or search didn't yield results
+  const { data, error, count } = await supabase
+    .from("reservations")
+    .select(
+      `
       *,
       user:user_id (id, email, first_name, last_name, phone, role),
       parking_lot:parking_lot_id (name),
@@ -619,20 +704,9 @@ export const getAllReservations = async (
         option:option_id (name, price)
       ),
       payments (id, amount, method, status)
-    `,
-    { count: "exact" } // Get total count for pagination
-  );
-
-  // Apply search filter if provided
-  if (searchQuery && searchQuery.trim() !== "") {
-    // Search by reservation number or user email
-    query = query.or(
-      `number.ilike.%${searchQuery}%,user.email.ilike.%${searchQuery}%`
-    );
-  }
-
-  // Apply pagination and ordering
-  const { data, error, count } = await query
+      `,
+      { count: "exact" }
+    )
     .order("created_at", { ascending: false })
     .range(from, to);
 
