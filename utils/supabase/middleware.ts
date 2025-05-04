@@ -49,6 +49,22 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
+    // // user routes
+    // if (
+    //   request.nextUrl.pathname.startsWith("/protected") &&
+    //   userData?.role !== "user"
+    // ) {
+    //   return NextResponse.redirect(new URL("/", request.url));
+    // }
+
+    // // admin routes
+    // if (
+    //   request.nextUrl.pathname.startsWith("/admin") &&
+    //   userData?.role !== "admin"
+    // ) {
+    //   return NextResponse.redirect(new URL("/", request.url));
+    // }
+
     if (
       request.nextUrl.pathname === "/sign-in" ||
       (request.nextUrl.pathname === "/sign-up" && userData)

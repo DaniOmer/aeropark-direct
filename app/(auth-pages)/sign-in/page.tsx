@@ -32,7 +32,7 @@ function SignInForm() {
 
     try {
       await signIn(email, password);
-      router.push(returnUrl || "/protected");
+      router.push(returnUrl || "/");
     } catch (error: any) {
       setErrorMessage(
         error.message || "Une erreur s'est produite lors de la connexion."

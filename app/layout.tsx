@@ -13,7 +13,7 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Aéropark Direct | Parking aéroport avec navette gratuite",
+  title: "ParkAero Direct | Parking aéroport avec navette gratuite",
   description:
     "Réservez votre parking situé à moins de 10 minutes de l'aéroport avec navette gratuite 24h/24 – 7j/7.",
 };
@@ -51,7 +51,7 @@ export default function RootLayout({
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
                           <h3 className="text-lg font-bold mb-4">
-                            Aéropark Direct
+                            ParkAero Direct
                           </h3>
                           <p className="text-muted-foreground text-sm">
                             Parking sécurisé à proximité de l&apos;aéroport, 10

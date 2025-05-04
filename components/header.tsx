@@ -21,6 +21,8 @@ export default function Header() {
     router.replace("/");
   };
 
+  console.log(user);
+
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
       <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">
@@ -56,13 +58,22 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-4">
             {!loading && user ? (
               <div className="flex items-center gap-4 justify-end">
-                Hey, {user.email}!
-                <Button
-                  onClick={() => router.push("/protected")}
-                  variant={"outline"}
-                >
-                  Mes réservations
-                </Button>
+                Hey, {user.email} {user?.user_metadata?.role}!
+                {user?.user_metadata?.role === "admin" ? (
+                  <Button
+                    onClick={() => router.push("/admin")}
+                    variant={"outline"}
+                  >
+                    Backoffice
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => router.push("/protected")}
+                    variant={"outline"}
+                  >
+                    Mes réservations
+                  </Button>
+                )}
                 <Button onClick={handleSignOut} variant={"outline"}>
                   Se déconnecter
                 </Button>

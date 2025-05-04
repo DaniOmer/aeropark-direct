@@ -23,7 +23,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchUser = async () => {
     try {
       const { data } = await supabase.auth.getUser();
-      setUser(data.user);
+      const { data: userData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("email", data.user?.email)
+        .single();
+
+      setUser(data.user && userData ? { ...data.user, ...userData } : null);
     } catch (error) {
       console.error("Error fetching user:", error);
     } finally {

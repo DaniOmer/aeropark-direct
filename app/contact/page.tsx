@@ -172,7 +172,7 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium">En voiture :</span> Depuis
                     l'A6, prendre la sortie 6 vers Vitry-Châtillon, puis suivre
-                    les panneaux "Aéropark Direct".
+                    les panneaux "ParkAero Direct".
                   </p>
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium">

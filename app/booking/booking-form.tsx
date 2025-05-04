@@ -67,29 +67,54 @@ export default function BookingForm({
   // Total price
   const totalPrice = basePrice + optionsPrice;
 
+  // State to hold the string value of quantity inputs
+  const [optionQuantities, setOptionQuantities] = useState<{
+    [key: string]: string;
+  }>({});
+
   // Handle option selection
   const handleOptionChange = (optionId: string, checked: boolean) => {
     if (checked) {
       // Add option with quantity 1
-      setSelectedOptions([
-        ...selectedOptions,
-        { option_id: optionId, quantity: 1 },
-      ]);
+      const newOption = { option_id: optionId, quantity: 1 };
+      setSelectedOptions([...selectedOptions, newOption]);
+      // Initialize quantity string state
+      setOptionQuantities((prev) => ({ ...prev, [optionId]: "1" }));
     } else {
       // Remove option
       setSelectedOptions(
         selectedOptions.filter((opt) => opt.option_id !== optionId)
       );
+      // Remove from quantity string state
+      setOptionQuantities((prev) => {
+        const newState = { ...prev };
+        delete newState[optionId];
+        return newState;
+      });
     }
   };
 
   // Handle option quantity change
-  const handleQuantityChange = (optionId: string, quantity: number) => {
-    setSelectedOptions(
-      selectedOptions.map((opt) =>
-        opt.option_id === optionId ? { ...opt, quantity } : opt
-      )
-    );
+  const handleQuantityChange = (optionId: string, rawValue: string) => {
+    // Update display state immediately
+    setOptionQuantities((prev) => ({ ...prev, [optionId]: rawValue }));
+
+    // Attempt to parse and update the actual quantity state
+    const quantity = parseInt(rawValue);
+    if (!isNaN(quantity) && quantity >= 1) {
+      setSelectedOptions(
+        selectedOptions.map((opt) =>
+          opt.option_id === optionId ? { ...opt, quantity: quantity } : opt
+        )
+      );
+    } else {
+      // If input is empty or invalid, ensure the *background* state has quantity 1 (minimum)
+      setSelectedOptions(
+        selectedOptions.map((opt) =>
+          opt.option_id === optionId ? { ...opt, quantity: 1 } : opt
+        )
+      );
+    }
   };
 
   // Handle form submission
@@ -321,13 +346,38 @@ export default function BookingForm({
                           id={`quantity-${option.id}`}
                           type="number"
                           min="1"
-                          value={selectedOption?.quantity || 1}
+                          // Use the string state for value
+                          value={optionQuantities[option.id] ?? ""}
                           onChange={(e) =>
                             handleQuantityChange(
                               option.id,
-                              parseInt(e.target.value) || 1
+                              e.target.value // Pass raw string value
                             )
                           }
+                          onBlur={(e) => {
+                            // Validate and clean up on blur
+                            const rawValue = e.target.value;
+                            const quantity = parseInt(rawValue);
+                            if (
+                              rawValue === "" ||
+                              isNaN(quantity) ||
+                              quantity < 1
+                            ) {
+                              // If empty or invalid, reset display to "1"
+                              setOptionQuantities((prev) => ({
+                                ...prev,
+                                [option.id]: "1",
+                              }));
+                              // Ensure background state is also 1
+                              setSelectedOptions(
+                                selectedOptions.map((opt) =>
+                                  opt.option_id === option.id
+                                    ? { ...opt, quantity: 1 }
+                                    : opt
+                                )
+                              );
+                            }
+                          }}
                           className="w-24"
                         />
                       </div>
