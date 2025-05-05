@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReservationWithUserData } from "@/app/actions";
@@ -72,8 +73,8 @@ export default function ReservationDetailsModal({
   };
 
   // Handle PDF download
-  const handleDownloadPDF = () => {
-    const doc = generateReservationPDF(reservation);
+  const handleDownloadPDF = async () => {
+    const doc = await generateReservationPDF(reservation);
     const reservationNumber =
       reservation.number || reservation.id.substring(0, 8);
     doc.save(`reservation-${reservationNumber}.pdf`);
@@ -88,7 +89,7 @@ export default function ReservationDetailsModal({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-3xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
+        <div className="p-6 space-y-6">
           <div className="flex justify-between items-start">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
               Détails de la réservation
@@ -114,8 +115,7 @@ export default function ReservationDetailsModal({
             </button>
           </div>
 
-          <div className="mt-6 space-y-6">
-            {/* Status and Actions */}
+          <div className="space-y-6">
             <div>
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white">
@@ -186,7 +186,6 @@ export default function ReservationDetailsModal({
               </div>
             </div>
 
-            {/* Client Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Informations client
@@ -219,7 +218,6 @@ export default function ReservationDetailsModal({
               </div>
             </div>
 
-            {/* Reservation Details */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Détails de la réservation
@@ -268,7 +266,6 @@ export default function ReservationDetailsModal({
               </div>
             </div>
 
-            {/* Vehicle Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Informations du véhicule
@@ -317,7 +314,6 @@ export default function ReservationDetailsModal({
               </div>
             </div>
 
-            {/* Options */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Options
@@ -380,7 +376,6 @@ export default function ReservationDetailsModal({
               )}
             </div>
 
-            {/* Payment Information */}
             <div>
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Paiement
@@ -448,7 +443,6 @@ export default function ReservationDetailsModal({
               )}
             </div>
 
-            {/* Summary */}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
               <div className="flex justify-between">
                 <span className="text-base font-medium text-gray-900 dark:text-white">

@@ -3,6 +3,25 @@ import autoTable from "jspdf-autotable";
 import { ReservationWithUserData } from "@/app/actions";
 import { formatDate } from "@/app/admin/reservations/reservation-details-modal";
 
+// Helper to load image data as Base64
+const loadImageAsBase64 = (url: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.onload = function () {
+      const reader = new FileReader();
+      reader.onloadend = function () {
+        resolve(reader.result as string);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(xhr.response);
+    };
+    xhr.onerror = reject;
+    xhr.open("GET", url);
+    xhr.responseType = "blob";
+    xhr.send();
+  });
+};
+
 // Extend the jsPDF type to include the lastAutoTable property
 interface jsPDFWithAutoTable extends jsPDF {
   lastAutoTable: {
@@ -11,27 +30,42 @@ interface jsPDFWithAutoTable extends jsPDF {
 }
 
 // Function to generate a PDF for a single reservation
-export const generateReservationPDF = (
+export const generateReservationPDF = async (
   reservation: ReservationWithUserData
 ) => {
   // Create a new PDF document
   const doc = new jsPDF() as jsPDFWithAutoTable;
+  let currentY = 0; // Track current Y position
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const bottomMargin = 20; // Space for footer and signatures
+
+  // Helper function to add a new page if needed
+  const checkAndAddPage = (neededHeight: number) => {
+    if (currentY + neededHeight > pageHeight - bottomMargin) {
+      doc.addPage();
+      currentY = margin; // Reset Y for new page
+    }
+  };
 
   // Add title
   doc.setFontSize(20);
   doc.text(
     `Réservation #${reservation.number || reservation.id.substring(0, 8)}`,
-    14,
+    margin,
     22
   );
+  currentY = 22;
 
   // Add date
   doc.setFontSize(10);
-  doc.text(`Généré le: ${new Date().toLocaleDateString("fr-FR")}`, 14, 30);
+  doc.text(`Généré le: ${new Date().toLocaleDateString("fr-FR")}`, margin, 30);
+  currentY = 30;
 
-  // Add reservation details
+  // --- Reservation Details ---
   doc.setFontSize(12);
-  doc.text("Détails de la réservation", 14, 40);
+  doc.text("Détails de la réservation", margin, 40);
+  currentY = 40;
 
   // Client information
   const clientInfo = [
@@ -44,16 +78,20 @@ export const generateReservationPDF = (
     ["Date de départ", formatDate(reservation.end_date)],
   ];
 
+  checkAndAddPage(20 + clientInfo.length * 7); // Estimate height
   autoTable(doc, {
-    startY: 45,
+    startY: currentY + 5,
     head: [["Information", "Détail"]],
     body: clientInfo,
     theme: "striped",
     headStyles: { fillColor: [41, 128, 185] },
   });
+  currentY = doc.lastAutoTable.finalY;
 
-  // Vehicle information
-  doc.text("Informations du véhicule", 14, doc.lastAutoTable.finalY + 10);
+  // --- Vehicle information ---
+  checkAndAddPage(25); // Title + Spacing
+  doc.text("Informations du véhicule", margin, currentY + 10);
+  currentY += 10;
 
   const vehicleInfo = [
     ["Type", getVehicleTypeLabel(reservation.vehicle_type)],
@@ -63,20 +101,24 @@ export const generateReservationPDF = (
     ["Immatriculation", reservation.vehicle_plate],
   ];
 
+  checkAndAddPage(20 + vehicleInfo.length * 7); // Estimate height
   autoTable(doc, {
-    startY: doc.lastAutoTable.finalY + 15,
+    startY: currentY + 5,
     head: [["Information", "Détail"]],
     body: vehicleInfo,
     theme: "striped",
     headStyles: { fillColor: [41, 128, 185] },
   });
+  currentY = doc.lastAutoTable.finalY;
 
-  // Options
+  // --- Options ---
   if (
     reservation.reservation_options &&
     reservation.reservation_options.length > 0
   ) {
-    doc.text("Options", 14, doc.lastAutoTable.finalY + 10);
+    checkAndAddPage(25); // Title + Spacing
+    doc.text("Options", margin, currentY + 10);
+    currentY += 10;
 
     const optionsData = reservation.reservation_options.map((opt) => [
       opt.option.name,
@@ -85,17 +127,21 @@ export const generateReservationPDF = (
       `${opt.option.price * opt.quantity} €`,
     ]);
 
+    checkAndAddPage(20 + optionsData.length * 7); // Estimate height
     autoTable(doc, {
-      startY: doc.lastAutoTable.finalY + 15,
+      startY: currentY + 5,
       head: [["Option", "Quantité", "Prix unitaire", "Total"]],
       body: optionsData,
       theme: "striped",
       headStyles: { fillColor: [41, 128, 185] },
     });
+    currentY = doc.lastAutoTable.finalY;
   }
 
-  // Payment information
-  doc.text("Paiement", 14, doc.lastAutoTable.finalY + 10);
+  // --- Payment information ---
+  checkAndAddPage(25); // Title + Spacing
+  doc.text("Paiement", margin, currentY + 10);
+  currentY += 10;
 
   // Calculate options total
   const optionsTotal = reservation.reservation_options.reduce(
@@ -109,12 +155,105 @@ export const generateReservationPDF = (
     ["Total", `${reservation.total_price} €`],
   ];
 
+  checkAndAddPage(20 + paymentInfo.length * 7); // Estimate height
   autoTable(doc, {
-    startY: doc.lastAutoTable.finalY + 15,
+    startY: currentY + 5,
     body: paymentInfo,
     theme: "striped",
     styles: { cellPadding: 5 },
   });
+  currentY = doc.lastAutoTable.finalY;
+
+  // --- Vehicle Condition Schematic ---
+  checkAndAddPage(65); // Title + Image height + spacing
+  doc.setFontSize(12);
+  doc.text("État du véhicule", margin, currentY + 10);
+  currentY += 15;
+
+  try {
+    const imgData = await loadImageAsBase64("/car-schematic.png");
+    const imgProps = doc.getImageProperties(imgData);
+    const imgWidth = 180; // Adjust width as desired (page width is ~210)
+    const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+    const imgX = (doc.internal.pageSize.getWidth() - imgWidth) / 2; // Center image
+
+    checkAndAddPage(imgHeight + 5);
+    doc.addImage(imgData, "PNG", imgX, currentY, imgWidth, imgHeight);
+    currentY += imgHeight + 5;
+  } catch (error) {
+    console.error("Error loading car schematic image:", error);
+    doc.setFontSize(10);
+    doc.setTextColor(255, 0, 0); // Red color for error
+    doc.text(
+      "Erreur: Impossible de charger le schéma du véhicule.",
+      margin,
+      currentY
+    );
+    doc.setTextColor(0, 0, 0); // Reset color
+    currentY += 5;
+  }
+
+  // --- Comments Section ---
+  checkAndAddPage(45); // Title + Box height + spacing
+  doc.setFontSize(12);
+  doc.text("Commentaires", margin, currentY + 10);
+  currentY += 15;
+  // Draw a box for comments
+  doc.setDrawColor(150); // Light gray border
+  doc.rect(margin, currentY, doc.internal.pageSize.getWidth() - margin * 2, 30); // x, y, width, height
+  // Add faint lines inside the box (optional)
+  doc.setLineDashPattern([1, 1], 0);
+  doc.line(
+    margin,
+    currentY + 7.5,
+    doc.internal.pageSize.getWidth() - margin,
+    currentY + 7.5
+  );
+  doc.line(
+    margin,
+    currentY + 15,
+    doc.internal.pageSize.getWidth() - margin,
+    currentY + 15
+  );
+  doc.line(
+    margin,
+    currentY + 22.5,
+    doc.internal.pageSize.getWidth() - margin,
+    currentY + 22.5
+  );
+  doc.setLineDashPattern([], 0); // Reset line dash
+  currentY += 30 + 10; // Box height + spacing
+
+  // --- Signatures ---
+  checkAndAddPage(30); // Spacing + line height
+  const signatureY = pageHeight - bottomMargin - 5; // Position signatures near the bottom
+  if (currentY > signatureY - 20) {
+    // If content is too close, add a page
+    doc.addPage();
+    currentY = margin;
+  }
+
+  doc.setFontSize(10);
+  const signatureXClient = margin;
+  const signatureXStaff = doc.internal.pageSize.getWidth() / 2 + margin / 2;
+  const signatureLineWidth =
+    doc.internal.pageSize.getWidth() / 2 - margin * 1.5;
+
+  doc.text("Signature client:", signatureXClient, signatureY);
+  doc.line(
+    signatureXClient,
+    signatureY + 2,
+    signatureXClient + signatureLineWidth,
+    signatureY + 2
+  );
+
+  doc.text("Signature du staff:", signatureXStaff, signatureY);
+  doc.line(
+    signatureXStaff,
+    signatureY + 2,
+    signatureXStaff + signatureLineWidth,
+    signatureY + 2
+  );
 
   // Add footer
   const pageCount = doc.getNumberOfPages();
