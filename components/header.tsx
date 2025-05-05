@@ -21,8 +21,6 @@ export default function Header() {
     router.replace("/");
   };
 
-  console.log(user);
-
   return (
     <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
       <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">
@@ -79,7 +77,7 @@ export default function Header() {
                 </Button>
                 <ThemeSwitcher />
               </div>
-            ) : !loading ? (
+            ) : (
               <div className="flex gap-2">
                 <Button asChild size="sm" variant={"outline"}>
                   <Link href="/sign-in">Se connecter</Link>
@@ -87,10 +85,6 @@ export default function Header() {
                 <Button asChild size="sm" variant={"default"}>
                   <Link href="/sign-up">S&apos;inscrire</Link>
                 </Button>
-                <ThemeSwitcher />
-              </div>
-            ) : (
-              <div className="flex gap-2">
                 <ThemeSwitcher />
               </div>
             )}
@@ -153,7 +147,7 @@ export default function Header() {
                     }}
                     variant={"outline"}
                   >
-                    Mes réservations
+                    Backoffice
                   </Button>
                 ) : (
                   <Button
@@ -168,7 +162,7 @@ export default function Header() {
                 )}
                 <ThemeSwitcher />
               </div>
-            ) : !loading ? (
+            ) : (
               <div className="flex gap-2 my-8">
                 <Button
                   onClick={() => {
@@ -190,10 +184,6 @@ export default function Header() {
                 >
                   S&apos;inscrire
                 </Button>
-                <ThemeSwitcher />
-              </div>
-            ) : (
-              <div className="flex gap-2 my-8">
                 <ThemeSwitcher />
               </div>
             )}
