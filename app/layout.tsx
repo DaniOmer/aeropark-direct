@@ -142,6 +142,14 @@ export default function RootLayout({
                                 Mentions légales
                               </Link>
                             </li>
+                            <li>
+                              <Link
+                                href="/cgv"
+                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                              >
+                                Conditions Générales de Vente
+                              </Link>
+                            </li>
                           </ul>
                         </div>
                       </div>
