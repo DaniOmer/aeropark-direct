@@ -58,8 +58,8 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-4">
             {!loading && user ? (
               <div className="flex items-center gap-4 justify-end">
-                Hey, {user.email} {user?.user_metadata?.role}!
-                {user?.user_metadata?.role === "admin" ? (
+                Hey, {user.email} !
+                {user?.role === "admin" ? (
                   <Button
                     onClick={() => router.push("/admin")}
                     variant={"outline"}
@@ -145,18 +145,27 @@ export default function Header() {
             {!loading && user ? (
               <div className="flex flex-col items-center gap-4 justify-end mt-12">
                 Hey, {user.email}!
-                <Button
-                  onClick={() => {
-                    router.push("/protected");
-                    setIsMenuOpen(false);
-                  }}
-                  variant={"outline"}
-                >
-                  Mes réservations
-                </Button>
-                <Button onClick={handleSignOut} variant={"outline"}>
-                  Se déconnecter
-                </Button>
+                {user?.role === "admin" ? (
+                  <Button
+                    onClick={() => {
+                      router.push("/admin");
+                      setIsMenuOpen(false);
+                    }}
+                    variant={"outline"}
+                  >
+                    Mes réservations
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      router.push("/protected");
+                      setIsMenuOpen(false);
+                    }}
+                    variant={"outline"}
+                  >
+                    Mes réservations
+                  </Button>
+                )}
                 <ThemeSwitcher />
               </div>
             ) : !loading ? (

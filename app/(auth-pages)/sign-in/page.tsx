@@ -18,7 +18,7 @@ function SignInForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(error);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -31,8 +31,16 @@ function SignInForm() {
     const password = formData.get("password") as string;
 
     try {
-      await signIn(email, password);
-      router.push(returnUrl || "/");
+      const signedInUser = await signIn(email, password);
+      if (returnUrl) {
+        router.push(returnUrl);
+      } else {
+        if (signedInUser?.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/protected");
+        }
+      }
     } catch (error: any) {
       setErrorMessage(
         error.message || "Une erreur s'est produite lors de la connexion."

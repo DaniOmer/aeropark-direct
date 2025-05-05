@@ -7,9 +7,9 @@ import { User } from "@supabase/supabase-js";
 type AuthContextType = {
   user: User | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
   signOut: () => Promise<void>;
-  refreshUser: () => Promise<void>;
+  refreshUser: () => Promise<User | null>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +21,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Récupérer l'utilisateur actuel
   const fetchUser = async () => {
+    setLoading(true);
+    let fetchedUser = null;
     try {
       const { data } = await supabase.auth.getUser();
       const { data: userData } = await supabase
@@ -29,9 +31,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .eq("email", data.user?.email)
         .single();
 
-      setUser(data.user && userData ? { ...data.user, ...userData } : null);
+      fetchedUser =
+        data.user && userData ? { ...data.user, ...userData } : null;
+      setUser(fetchedUser);
+      return fetchedUser;
     } catch (error) {
       console.error("Error fetching user:", error);
+      setUser(null);
+      return null;
     } finally {
       setLoading(false);
     }
@@ -40,18 +47,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Fonction pour se connecter
   const signIn = async (email: string, password: string) => {
     setLoading(true);
+    let signedInUser = null;
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       if (error) throw error;
-      await fetchUser();
+      signedInUser = await fetchUser();
+      return signedInUser;
     } catch (error) {
       console.error("Error signing in:", error);
+      setUser(null);
       throw error;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -70,7 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Fonction pour rafraîchir manuellement les données utilisateur
   const refreshUser = async () => {
-    await fetchUser();
+    return await fetchUser();
   };
 
   // S'abonner aux changements d'auth
