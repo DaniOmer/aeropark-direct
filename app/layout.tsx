@@ -150,6 +150,14 @@ export default function RootLayout({
                                 Conditions Générales de Vente
                               </Link>
                             </li>
+                            <li>
+                              <Link
+                                href="/politique-confidentialite"
+                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                              >
+                                Politique de Confidentialité
+                              </Link>
+                            </li>
                           </ul>
                         </div>
                       </div>
