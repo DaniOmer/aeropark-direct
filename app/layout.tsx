@@ -48,7 +48,7 @@ export default function RootLayout({
 
                   <footer className="w-full bg-secondary text-secondary-foreground py-16">
                     <div className="container max-w-screen-xl mx-auto px-4">
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                         <div>
                           <h3 className="text-lg font-bold mb-4">
                             ParkAero Direct
@@ -126,6 +126,23 @@ export default function RootLayout({
                           <div className="flex items-center mt-4">
                             <ThemeSwitcher />
                           </div>
+                        </div>
+
+                        {/* Liens vers les mentions légales */}
+                        <div>
+                          <h3 className="text-lg font-bold mb-4">
+                            Mentions légales
+                          </h3>
+                          <ul className="space-y-2 text-sm">
+                            <li>
+                              <Link
+                                href="/mentions-legales"
+                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                              >
+                                Mentions légales
+                              </Link>
+                            </li>
+                          </ul>
                         </div>
                       </div>
 
