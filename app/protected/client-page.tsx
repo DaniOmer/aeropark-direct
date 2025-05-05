@@ -64,8 +64,8 @@ function ReservationDetailsModal({
   if (!isOpen || !reservation) return null;
 
   // Handle PDF download
-  const handleDownloadPDF = () => {
-    const doc = generateReservationPDF(reservation);
+  const handleDownloadPDF = async () => {
+    const doc = await generateReservationPDF(reservation);
     const reservationNumber =
       reservation.number || reservation.id.substring(0, 8);
     doc.save(`reservation-${reservationNumber}.pdf`);
@@ -300,8 +300,8 @@ export default function UserReservationsClientPage({
   };
 
   // Handle PDF download
-  const handleDownloadPDF = (reservation: ReservationWithUserData) => {
-    const doc = generateReservationPDF(reservation);
+  const handleDownloadPDF = async (reservation: ReservationWithUserData) => {
+    const doc = await generateReservationPDF(reservation);
     const reservationNumber =
       reservation.number || reservation.id.substring(0, 8);
     doc.save(`reservation-${reservationNumber}.pdf`);
