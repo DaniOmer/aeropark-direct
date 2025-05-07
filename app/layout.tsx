@@ -144,6 +144,14 @@ export default function RootLayout({
                             </li>
                             <li>
                               <Link
+                                href="/cgu"
+                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                              >
+                                Conditions Générales d&apos;Utilisation
+                              </Link>
+                            </li>
+                            <li>
+                              <Link
                                 href="/cgv"
                                 className="text-muted-foreground hover:text-secondary-foreground transition-colors"
                               >

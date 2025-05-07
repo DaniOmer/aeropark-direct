@@ -14,15 +14,17 @@ export type SignUpActionResult = {
 export const signUpAction = async (
   formData: FormData
 ): Promise<SignUpActionResult> => {
+  console.log("signUpAction", formData);
   const email = formData.get("email")?.toString();
   const password = formData.get("password")?.toString();
   const firstName = formData.get("first_name")?.toString();
   const lastName = formData.get("last_name")?.toString();
   const phone = formData.get("phone")?.toString();
+  const cgu = formData.get("cgu");
   const supabase = await createClient();
   const origin = (await headers()).get("origin");
 
-  if (!email || !password || !firstName || !lastName || !phone) {
+  if (!email || !password || !firstName || !lastName || !phone || !cgu) {
     // Return an error object instead of redirecting
     return { error: "Tous les champs sont requis" };
     // return encodedRedirect("error", "/sign-up", "Tous les champs sont requis");
@@ -72,6 +74,8 @@ export const signUpAction = async (
     last_name: lastName,
     phone: phone,
     role: "user",
+    cgu: true,
+    cgu_acceptance_date: new Date().toISOString(),
   });
 
   if (dbError) {

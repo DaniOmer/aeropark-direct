@@ -10,6 +10,7 @@ import { signUpAction, SignUpActionResult } from "@/app/actions";
 import { FormMessage, Message } from "@/components/form-message";
 import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
 const schema = yup.object().shape({
   email: yup.string().email("Email invalide").required("Email requis"),
@@ -23,6 +24,10 @@ const schema = yup.object().shape({
     .string()
     .matches(/^[0-9]{10}$/, "Numéro de téléphone invalide")
     .required("Numéro de téléphone requis"),
+  cgu: yup
+    .boolean()
+    .oneOf([true], "Vous devez accepter les conditions générales d'utilisation")
+    .required("Vous devez accepter les conditions générales d'utilisation"),
 });
 
 type FormData = yup.InferType<typeof schema>;
@@ -184,6 +189,24 @@ export function RegisterForm({ message }: RegisterFormProps) {
             <p className="text-red-500 text-sm">{errors.password.message}</p>
           )}
         </div>
+
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="cgu"
+            {...register("cgu")}
+            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+          />
+          <Label htmlFor="cgu" className="text-sm">
+            J'accepte les{" "}
+            <Link href="/cgu" className="text-primary hover:underline">
+              conditions générales d'utilisation
+            </Link>
+          </Label>
+        </div>
+        {errors.cgu && (
+          <p className="text-red-500 text-sm">{errors.cgu.message}</p>
+        )}
 
         <SubmitButton pending={isPending} pendingText="Inscription...">
           S'inscrire
