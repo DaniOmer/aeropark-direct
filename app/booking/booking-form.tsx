@@ -47,6 +47,8 @@ export default function BookingForm({
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [cgvAccepted, setCgvAccepted] = useState(false);
+  const [cguAccepted, setCguAccepted] = useState(false);
 
   // Calculate price
   const days = calculateDays(startDate, endDate);
@@ -136,6 +138,8 @@ export default function BookingForm({
         vehicle_color: vehicleColor,
         vehicle_plate: vehiclePlate,
         options: selectedOptions.length > 0 ? selectedOptions : undefined,
+        cgv: cgvAccepted,
+        cgu: user === null ? cguAccepted : true,
       };
 
       // Create reservation
@@ -406,6 +410,50 @@ export default function BookingForm({
 
         {error && (
           <div className="bg-red-50 text-red-700 p-4 rounded-md">{error}</div>
+        )}
+
+        {/* CGV Checkbox */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="cgv"
+            checked={cgvAccepted}
+            onCheckedChange={(checked) => setCgvAccepted(checked as boolean)}
+            required
+          />
+          <Label htmlFor="cgv" className="text-sm text-gray-600">
+            J'accepte les{" "}
+            <a
+              href="/cgv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              conditions générales de vente
+            </a>
+          </Label>
+        </div>
+
+        {/* CGU Checkbox for guest users */}
+        {user.role === "guest" && (
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="cgu"
+              checked={cguAccepted}
+              onCheckedChange={(checked) => setCguAccepted(checked as boolean)}
+              required
+            />
+            <Label htmlFor="cgu" className="text-sm text-gray-600">
+              J'accepte les{" "}
+              <a
+                href="/cgu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                conditions générales d'utilisation
+              </a>
+            </Label>
+          </div>
         )}
 
         <div className="flex justify-center pt-4">

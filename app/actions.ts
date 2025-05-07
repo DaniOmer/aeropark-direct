@@ -45,48 +45,46 @@ export const signUpAction = async (
   }
 
   // Créer l'utilisateur dans Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-        phone: phone,
-        role: "user",
-      },
-    },
-  });
+  // const { data: authData, error: authError } = await supabase.auth.signUp({
+  //   email,
+  //   password,
+  //   options: {
+  //     emailRedirectTo: `${origin}/auth/callback`,
+  //     data: {
+  //       first_name: firstName,
+  //       last_name: lastName,
+  //       phone: phone,
+  //       role: "user",
+  //     },
+  //   },
+  // });
 
-  if (authError) {
-    console.error(authError.code + " " + authError.message);
-    // Return a general error object
-    return { error: authError.message };
-    // return encodedRedirect("error", "/sign-up", authError.message);
-  }
+  // if (authError) {
+  //   console.error(authError.code + " " + authError.message);
+  //   // Return a general error object
+  //   return { error: authError.message };
+  //   // return encodedRedirect("error", "/sign-up", authError.message);
+  // }
 
   // Créer l'utilisateur dans la table users
-  const { error: dbError } = await supabase.from("users").insert({
-    email,
-    password: "**********", // Ne pas stocker le mot de passe en clair
-    first_name: firstName,
-    last_name: lastName,
-    phone: phone,
-    role: "user",
-    cgu: true,
-    cgu_acceptance_date: new Date().toISOString(),
-  });
+  const { data: userData, error: userError } = await supabase
+    .from("users")
+    .insert({
+      email,
+      password: "**********", // Ne pas stocker le mot de passe en clair
+      first_name: firstName,
+      last_name: lastName,
+      phone: phone,
+      role: "user",
+      cgu: true,
+      cgu_acceptance_date: new Date().toISOString(),
+    });
 
-  if (dbError) {
-    console.error("Database error: ", dbError.message);
-    // Si l'insertion échoue, on essaie de supprimer l'utilisateur créé dans Auth
-    if (authData.user?.id) {
-      await supabase.auth.admin.deleteUser(authData.user.id);
-    }
+  if (userError) {
+    console.error("Database error: ", userError.message);
     // Return a general error object
     return {
-      error: "Erreur lors de la création du compte: " + dbError.message,
+      error: "Erreur lors de la création du compte: " + userError.message,
     };
   }
 
@@ -1100,6 +1098,8 @@ export type ReservationWithOptions = {
   vehicle_model: string;
   vehicle_color: string;
   vehicle_plate: string;
+  cgv: boolean;
+  cgu: boolean;
   options?: { option_id: string; quantity: number }[];
 };
 
@@ -1214,7 +1214,7 @@ export const createReservation = async (
   totalPrice += optionsPrice;
 
   // Create a copy of reservationData without the options field
-  const { options, ...reservationDataWithoutOptions } = reservationData;
+  const { options, cgu, ...reservationDataWithoutOptions } = reservationData;
 
   // Insert the reservation without the options field
   const { data, error } = await supabase

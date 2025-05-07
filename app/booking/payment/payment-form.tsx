@@ -12,6 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { recordPayment } from "@/app/actions";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 // Load Stripe outside of component to avoid recreating it on each render
 const stripePromise = loadStripe(
@@ -287,9 +289,41 @@ export default function PaymentForm({
   reservationId: string;
   amount: number;
 }) {
+  const [cgvAccepted, setCgvAccepted] = useState(false);
+
   return (
     <Elements stripe={stripePromise}>
-      <CheckoutForm reservationId={reservationId} amount={amount} />
+      <div className="space-y-6">
+        {/* CGV Checkbox */}
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="cgv"
+            checked={cgvAccepted}
+            onCheckedChange={(checked) => setCgvAccepted(checked as boolean)}
+            required
+          />
+          <Label htmlFor="cgv" className="text-sm text-gray-600">
+            J'accepte les{" "}
+            <a
+              href="/cgv"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+            >
+              conditions générales de vente
+            </a>
+          </Label>
+        </div>
+
+        {cgvAccepted ? (
+          <CheckoutForm reservationId={reservationId} amount={amount} />
+        ) : (
+          <div className="text-center text-gray-600">
+            Veuillez accepter les conditions générales de vente pour procéder au
+            paiement
+          </div>
+        )}
+      </div>
     </Elements>
   );
 }
