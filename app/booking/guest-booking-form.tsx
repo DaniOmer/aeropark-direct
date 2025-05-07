@@ -42,6 +42,7 @@ export default function GuestBookingForm({
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [flightNumber, setFlightNumber] = useState("");
 
   // User information states
   const [step, setStep] = useState(1); // 1: Vehicle info, 2: User info
@@ -138,6 +139,7 @@ export default function GuestBookingForm({
       vehicleModel,
       vehicleColor,
       vehiclePlate,
+      flightNumber,
       selectedOptions,
       totalPrice,
     };
@@ -177,6 +179,7 @@ export default function GuestBookingForm({
             vehicle_model: vehicleModel,
             vehicle_color: vehicleColor,
             vehicle_plate: vehiclePlate,
+            flight_number: flightNumber,
             parking_lot_id: parkingLot.id,
             options: selectedOptions,
           },
@@ -350,6 +353,21 @@ export default function GuestBookingForm({
                   onChange={(e) => setVehiclePlate(e.target.value)}
                   className="w-full"
                   required
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="flightNumber"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Numéro de vol
+                </Label>
+                <Input
+                  id="flightNumber"
+                  value={flightNumber}
+                  onChange={(e) => setFlightNumber(e.target.value)}
+                  className="w-full"
+                  placeholder="Ex: AF1234"
                 />
               </div>
             </div>

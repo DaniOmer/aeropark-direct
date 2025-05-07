@@ -66,6 +66,9 @@ export async function POST(request: NextRequest) {
       vehicle_color: reservation.vehicle_color,
       vehicle_plate: reservation.vehicle_plate,
       options: reservation.options,
+      flight_number: reservation.flight_number,
+      cgu: reservation.cgv,
+      cgv: reservation.cgv,
     };
 
     const result = await createReservation(reservationData);

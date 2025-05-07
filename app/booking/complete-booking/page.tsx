@@ -85,7 +85,10 @@ export default function CompleteBookingPage() {
         vehicle_model: bookingData.vehicleModel,
         vehicle_color: bookingData.vehicleColor,
         vehicle_plate: bookingData.vehiclePlate,
+        flight_number: bookingData.flightNumber,
         options: bookingData.selectedOptions,
+        cgv: true,
+        cgu: true,
       };
 
       // Create reservation

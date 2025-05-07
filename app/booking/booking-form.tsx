@@ -47,6 +47,7 @@ export default function BookingForm({
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
+  const [flightNumber, setFlightNumber] = useState("");
   const [cgvAccepted, setCgvAccepted] = useState(false);
   const [cguAccepted, setCguAccepted] = useState(false);
 
@@ -137,6 +138,7 @@ export default function BookingForm({
         vehicle_model: vehicleModel,
         vehicle_color: vehicleColor,
         vehicle_plate: vehiclePlate,
+        flight_number: flightNumber,
         options: selectedOptions.length > 0 ? selectedOptions : undefined,
         cgv: cgvAccepted,
         cgu: user === null ? cguAccepted : true,
@@ -315,6 +317,21 @@ export default function BookingForm({
                 onChange={(e) => setVehiclePlate(e.target.value)}
                 className="w-full"
                 required
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="flightNumber"
+                className="block text-sm font-medium mb-1"
+              >
+                Numéro de vol
+              </Label>
+              <Input
+                id="flightNumber"
+                value={flightNumber}
+                onChange={(e) => setFlightNumber(e.target.value)}
+                className="w-full"
+                placeholder="Ex: AF1234"
               />
             </div>
           </div>

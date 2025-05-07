@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       // Update the reservation status to "confirmed" as a fallback
       const { data: updatedReservation, error: updateError } = await supabase
         .from("reservations")
-        .update({ status: "confirmed" })
+        .update({ status: "confirmed", cgv: true })
         .eq("id", reservationId)
         .single();
 
