@@ -65,6 +65,8 @@ export default function CreateReservationModal({
     vehicle_color: "",
     vehicle_plate: "",
     options: [],
+    cgv: false,
+    cgu: false,
   });
 
   // Fetch options when modal opens
@@ -91,6 +93,8 @@ export default function CreateReservationModal({
         vehicle_color: "",
         vehicle_plate: "",
         options: [],
+        cgv: false,
+        cgu: false,
       });
       setSelectedOptions([]);
 
@@ -824,6 +828,42 @@ export default function CreateReservationModal({
                 {error}
               </div>
             )}
+
+            {/* Terms and Conditions */}
+            <div className="space-y-4 mt-6">
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="cgv"
+                  checked={formData.cgv}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, cgv: checked as boolean })
+                  }
+                  className="mt-1"
+                />
+                <Label
+                  htmlFor="cgv"
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                >
+                  J'accepte les conditions générales de vente
+                </Label>
+              </div>
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="cgu"
+                  checked={formData.cgu}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, cgu: checked as boolean })
+                  }
+                  className="mt-1"
+                />
+                <Label
+                  htmlFor="cgu"
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                >
+                  J'accepte les conditions générales d'utilisation
+                </Label>
+              </div>
+            </div>
 
             <div className="flex justify-end space-x-3 mt-6">
               <Button
