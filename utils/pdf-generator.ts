@@ -29,241 +29,365 @@ interface jsPDFWithAutoTable extends jsPDF {
   };
 }
 
+// Helper function to check and add new page if needed
+const checkAndAddNewPage = (
+  doc: jsPDFWithAutoTable,
+  currentY: number,
+  margin: number
+): number => {
+  const pageHeight = doc.internal.pageSize.getHeight();
+  if (currentY > pageHeight - margin) {
+    doc.addPage();
+    return margin;
+  }
+  return currentY;
+};
+
 // Function to generate a PDF for a single reservation
 export const generateReservationPDF = async (
   reservation: ReservationWithUserData
 ) => {
   // Create a new PDF document
   const doc = new jsPDF() as jsPDFWithAutoTable;
-  let currentY = 0; // Track current Y position
+  const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 14;
-  const bottomMargin = 20; // Space for footer and signatures
+  const rightMargin = 14;
+  const topMargin = 14;
+  let currentY = topMargin;
 
-  // Helper function to add a new page if needed
-  const checkAndAddPage = (neededHeight: number) => {
-    if (currentY + neededHeight > pageHeight - bottomMargin) {
-      doc.addPage();
-      currentY = margin; // Reset Y for new page
-    }
-  };
-
-  // Add title
-  doc.setFontSize(20);
-  doc.text(
-    `Réservation #${reservation.number || reservation.id.substring(0, 8)}`,
-    margin,
-    22
-  );
-  currentY = 22;
-
-  // Add date
-  doc.setFontSize(10);
-  doc.text(`Généré le: ${new Date().toLocaleDateString("fr-FR")}`, margin, 30);
-  currentY = 30;
-
-  // --- Reservation Details ---
-  doc.setFontSize(12);
-  doc.text("Détails de la réservation", margin, 40);
-  currentY = 40;
-
-  // Client information
-  const clientInfo = [
-    ["Client", `${reservation.user.first_name} ${reservation.user.last_name}`],
-    ["Email", reservation.user.email],
-    ["Téléphone", reservation.user.phone],
-    ["Statut", getStatusLabel(reservation.status)],
-    ["Parking", reservation.parking_lot.name],
-    ["Date d'arrivée", formatDate(reservation.start_date)],
-    ["Date de départ", formatDate(reservation.end_date)],
-  ];
-
-  checkAndAddPage(20 + clientInfo.length * 7); // Estimate height
-  autoTable(doc, {
-    startY: currentY + 5,
-    head: [["Information", "Détail"]],
-    body: clientInfo,
-    theme: "striped",
-    headStyles: { fillColor: [41, 128, 185] },
-  });
-  currentY = doc.lastAutoTable.finalY;
-
-  // --- Vehicle information ---
-  checkAndAddPage(25); // Title + Spacing
-  doc.text("Informations du véhicule", margin, currentY + 10);
-  currentY += 10;
-
-  const vehicleInfo = [
-    ["Type", getVehicleTypeLabel(reservation.vehicle_type)],
-    ["Marque", reservation.vehicle_brand],
-    ["Modèle", reservation.vehicle_model],
-    ["Couleur", reservation.vehicle_color],
-    ["Immatriculation", reservation.vehicle_plate],
-  ];
-
-  checkAndAddPage(20 + vehicleInfo.length * 7); // Estimate height
-  autoTable(doc, {
-    startY: currentY + 5,
-    head: [["Information", "Détail"]],
-    body: vehicleInfo,
-    theme: "striped",
-    headStyles: { fillColor: [41, 128, 185] },
-  });
-  currentY = doc.lastAutoTable.finalY;
-
-  // --- Options ---
-  if (
-    reservation.reservation_options &&
-    reservation.reservation_options.length > 0
-  ) {
-    checkAndAddPage(25); // Title + Spacing
-    doc.text("Options", margin, currentY + 10);
-    currentY += 10;
-
-    const optionsData = reservation.reservation_options.map((opt) => [
-      opt.option.name,
-      opt.quantity.toString(),
-      `${opt.option.price} €`,
-      `${opt.option.price * opt.quantity} €`,
-    ]);
-
-    checkAndAddPage(20 + optionsData.length * 7); // Estimate height
-    autoTable(doc, {
-      startY: currentY + 5,
-      head: [["Option", "Quantité", "Prix unitaire", "Total"]],
-      body: optionsData,
-      theme: "striped",
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-    currentY = doc.lastAutoTable.finalY;
+  // --- EN-TÊTE ---
+  // Add logo (top left) - Maintain aspect ratio
+  try {
+    const logoData = await loadImageAsBase64("/park-aero.jpg");
+    // Get image properties to maintain aspect ratio
+    const imgProps = doc.getImageProperties(logoData);
+    const logoWidth = 20; // Reduced width
+    const logoHeight = (imgProps.height * logoWidth) / imgProps.width;
+    doc.addImage(logoData, "PNG", margin, topMargin, logoWidth, logoHeight);
+  } catch (e) {
+    console.error("Logo not found:", e);
   }
 
-  // --- Payment information ---
-  checkAndAddPage(25); // Title + Spacing
-  doc.text("Paiement", margin, currentY + 10);
+  // Titre à droite
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.text("RESA PARKAERO", pageWidth - rightMargin, topMargin + 10, {
+    align: "right",
+  });
+
+  currentY = topMargin + 30;
+
+  // Ligne de séparation
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.1);
+  doc.line(margin, currentY - 5, pageWidth - margin, currentY - 5);
+
   currentY += 10;
 
-  // Calculate options total
-  const optionsTotal = reservation.reservation_options.reduce(
-    (total, opt) => total + opt.option.price * opt.quantity,
-    0
+  // CONTRAT DE LOCATION + FACTURE
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "bold");
+  const contractText = "CONTRAT DE LOCATION DE PARKING ";
+  const contractTextWidth = doc.getTextWidth(contractText);
+  doc.text(contractText, margin + 50, currentY);
+
+  // Numéro de facture manuscrit à droite
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    reservation.number
+      ? reservation.number.toString()
+      : (reservation.id || "").substring(0, 8),
+    margin + 50 + contractTextWidth + 5,
+    currentY
   );
 
-  const paymentInfo = [
-    ["Prix de base", `${reservation.total_price - optionsTotal} €`],
-    ["Options", `${optionsTotal} €`],
-    ["Total", `${reservation.total_price} €`],
-  ];
+  currentY += 10;
 
-  checkAndAddPage(20 + paymentInfo.length * 7); // Estimate height
-  autoTable(doc, {
-    startY: currentY + 5,
-    body: paymentInfo,
-    theme: "striped",
-    styles: { cellPadding: 5 },
+  // Date de la commande et CONTRAT DE LOCATION
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(
+    `Date de réservation : ${formatDate(reservation.created_at || reservation.start_date || "")}`,
+    margin,
+    currentY
+  );
+
+  // Destination
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.text(`Destination : `, margin + 80, currentY);
+
+  // ORLY : 1 2 3 4
+  doc.text("ORLY : 1 2 3 4", pageWidth - margin - 40, currentY);
+
+  currentY += 10;
+
+  // Date du dépôt et facture
+  const formattedStartDate = formatDate(reservation.start_date || "");
+  doc.text(`Départ : ${formattedStartDate}`, margin, currentY);
+
+  // Calcul du nombre de jours
+  const start = new Date(reservation.start_date || "");
+  const end = new Date(reservation.end_date || "");
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  doc.text(`Nb de jours : ${diffDays}`, margin + 60, currentY);
+
+  // Mode de paiement
+  doc.text(`Mode de paiement : `, pageWidth - margin - 90, currentY);
+
+  // Cases à cocher pour paiement
+  const checkboxY = currentY - 3;
+  doc.rect(pageWidth - margin - 42, checkboxY, 4, 4); // Chèque
+  doc.text("Chèque", pageWidth - margin - 55, currentY);
+  doc.rect(pageWidth - margin - 20, checkboxY, 4, 4); // Espèces
+  doc.text("Espèces", pageWidth - margin - 35, currentY);
+  doc.rect(pageWidth - margin - 4, checkboxY, 4, 4); // CB
+  doc.text("CB", pageWidth - margin - 13, currentY);
+
+  // Cercle autour du mode de paiement (par défaut CB)
+  doc.circle(pageWidth - margin - 2, currentY - 1, 5);
+
+  currentY += 10;
+
+  // Heures de départ et convocation - Split into two lines to prevent truncation
+  const flightNumber = reservation.flight_number
+    ? reservation.flight_number
+    : "";
+  doc.text(`Numero de vol : ${flightNumber}`, margin, currentY);
+
+  currentY += 5;
+  doc.text(`H. du départ de l'avion : `, margin, currentY);
+
+  // Date et heure de retour
+  currentY += 10;
+  doc.text(
+    `Date et heure de retour : ${formatDate(reservation.end_date || "")}`,
+    margin,
+    currentY
+  );
+
+  // Nom et téléphone - with text wrapping for long values
+  currentY += 10;
+  doc.text(
+    `Nom : ${reservation.user?.first_name || ""} ${reservation.user?.last_name || ""}`,
+    margin,
+    currentY,
+    { maxWidth: pageWidth / 2 - margin - 10 }
+  );
+
+  // Phone number with proper spacing
+  const phoneText = `Téléphone : ${reservation.user?.phone || ""}`;
+  doc.text(phoneText, pageWidth / 2 + 10, currentY, {
+    maxWidth: pageWidth / 2 - margin - 10,
   });
-  currentY = doc.lastAutoTable.finalY;
 
-  // --- Vehicle Condition Schematic ---
-  checkAndAddPage(65); // Title + Image height + spacing
-  doc.setFontSize(12);
-  doc.text("État du véhicule", margin, currentY + 10);
+  // Adresse, code postal et ville
+  currentY += 10;
+  doc.text(`Adresse : `, margin, currentY);
+  doc.text(`Code postal : `, margin + 100, currentY);
+  doc.text(`Ville : `, margin + 150, currentY);
+
   currentY += 15;
 
+  // Prix et TVA
+  const basePrice = reservation.total_price * 0.8; // Approximation pour la démonstration
+  const tva = reservation.total_price * 0.2; // Approximation pour la démonstration
+  doc.text(
+    `Mt de la réservation : ${reservation.total_price.toFixed(2)} €`,
+    margin,
+    currentY
+  );
+  doc.text(
+    `Mt des options : ${reservation.reservation_options.reduce(
+      (total, opt) => total + opt.option.price * opt.quantity,
+      0
+    )} €`,
+    margin + 70,
+    currentY
+  );
+
+  doc.text(
+    `Total : ${reservation.total_price.toFixed(2)} €`,
+    margin + 130,
+    currentY
+  );
+
+  currentY += 10;
+
+  // Ligne de séparation
+  doc.setDrawColor(0);
+  doc.setLineWidth(0.1);
+  doc.line(margin, currentY, pageWidth - margin, currentY);
+
+  currentY += 10;
+
+  // --- Rapport de chocs importants ---
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    "Rapport de chocs importants ( voir )",
+    pageWidth - margin - 70,
+    currentY
+  );
+
+  currentY += 10;
+
+  // --- Informations concernant le véhicule ---
+  doc.setFontSize(11);
+  doc.setFont("helvetica", "italic");
+  doc.text("Informations concernant le véhicule", margin, currentY);
+
+  currentY += 10;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // Marque/Modèle et couleur - with text wrapping for long values
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const vehicleText = `Marque/Modèle et couleur: ${reservation.vehicle_brand} ${reservation.vehicle_model} ${reservation.vehicle_color}`;
+  // Calculate available width (accounting for the car schematic on the right)
+  const availableWidth = pageWidth - 2 * margin - 90; // 90 is approximate width of car schematic
+  doc.text(vehicleText, margin, currentY, { maxWidth: availableWidth });
+
+  currentY += 10;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // Immatriculation - with text wrapping for long values
+  const plateText = `Immatriculation : ${reservation.vehicle_plate}`;
+  doc.text(plateText, margin, currentY, { maxWidth: availableWidth });
+
+  currentY += 10;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // Kms
+  doc.text(`Kms `, margin, currentY);
+  // Ligne pour écrire les kms
+  doc.line(margin + 20, currentY, margin + 60, currentY);
+
+  currentY += 20;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // N° code de système d'alarme
+  // doc.text(`N° code de système d'alarme:`, margin, currentY);
+
+  // Calculate space needed for vehicle info section
+  const vehicleInfoHeight = 80; // Approximate height needed for vehicle info text
+
+  // --- Schéma du véhicule ---
   try {
     const imgData = await loadImageAsBase64("/car-schematic.png");
     const imgProps = doc.getImageProperties(imgData);
-    const imgWidth = 180; // Adjust width as desired (page width is ~210)
+    const imgWidth = 80; // Slightly reduced width
     const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-    const imgX = (doc.internal.pageSize.getWidth() - imgWidth) / 2; // Center image
 
-    checkAndAddPage(imgHeight + 5);
-    doc.addImage(imgData, "PNG", imgX, currentY, imgWidth, imgHeight);
-    currentY += imgHeight + 5;
+    // Position image to the right, aligned with the current text section
+    const imgX = pageWidth - margin - imgWidth; // Right align
+    const imgY = currentY - vehicleInfoHeight + 15; // Position at the start of vehicle info section
+
+    // Make sure we have enough space for the image
+    if (imgY > topMargin) {
+      doc.addImage(imgData, "PNG", imgX, imgY, imgWidth, imgHeight);
+    } else {
+      // If not enough space, position it at a safe distance
+      doc.addImage(imgData, "PNG", imgX, topMargin + 5, imgWidth, imgHeight);
+    }
   } catch (error) {
     console.error("Error loading car schematic image:", error);
-    doc.setFontSize(10);
-    doc.setTextColor(255, 0, 0); // Red color for error
-    doc.text(
-      "Erreur: Impossible de charger le schéma du véhicule.",
-      margin,
-      currentY
-    );
-    doc.setTextColor(0, 0, 0); // Reset color
-    currentY += 5;
   }
 
-  // --- Comments Section ---
-  checkAndAddPage(45); // Title + Box height + spacing
-  doc.setFontSize(12);
-  doc.text("Commentaires", margin, currentY + 10);
+  // Ensure we move past the vehicle info section
+  // currentY += 25;
+  // currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // currentY += 15;
+  // currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // currentY += 20;
+  // currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // --- Texte d'accord ---
+  doc.setFontSize(9);
+  const textWidth = pageWidth - margin * 2;
+  doc.text(
+    "Je suis d'accord avec le rapport de chocs importants ci-dessus, déclare ne rien avoir caché concernant son véhicule",
+    margin,
+    currentY,
+    { maxWidth: textWidth }
+  );
+
+  currentY += 5;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+  doc.text("avant de l'avoir confié ce jour.", margin, currentY);
+
+  currentY += 5;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+  doc.text(
+    "Je confirme avoir pris connaissance des conditions générales de vente figurant sur le site internet de ParkAero.",
+    margin,
+    currentY,
+    { maxWidth: textWidth }
+  );
+
+  currentY += 10;
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+
+  // --- Navette ---
+
   currentY += 15;
-  // Draw a box for comments
-  doc.setDrawColor(150); // Light gray border
-  doc.rect(margin, currentY, doc.internal.pageSize.getWidth() - margin * 2, 30); // x, y, width, height
-  // Add faint lines inside the box (optional)
-  doc.setLineDashPattern([1, 1], 0);
-  doc.line(
+  currentY = checkAndAddNewPage(doc, currentY, margin);
+  doc.setFontSize(8);
+  doc.setFont("helvetica", "italic");
+  doc.text(
+    "* Toutes les vitres, crevassons, petits chocs, petites rayures et bas de caisse ne sont pas pris en compte dans le rapport de chocs importants",
     margin,
-    currentY + 7.5,
-    doc.internal.pageSize.getWidth() - margin,
-    currentY + 7.5
+    currentY,
+    { maxWidth: textWidth }
   );
-  doc.line(
-    margin,
-    currentY + 15,
-    doc.internal.pageSize.getWidth() - margin,
-    currentY + 15
-  );
-  doc.line(
-    margin,
-    currentY + 22.5,
-    doc.internal.pageSize.getWidth() - margin,
-    currentY + 22.5
-  );
-  doc.setLineDashPattern([], 0); // Reset line dash
-  currentY += 30 + 10; // Box height + spacing
+
+  // --- Options (simplified to just show total) ---
+  // if (
+  //   reservation.reservation_options &&
+  //   reservation.reservation_options.length > 0
+  // ) {
+  //   currentY += 10;
+  //   currentY = checkAndAddNewPage(doc, currentY, margin);
+  //   doc.setFontSize(10);
+  //   doc.setFont("helvetica", "bold");
+
+  //   // Calculate options total
+  //   const optionsTotal = reservation.reservation_options.reduce(
+  //     (total, opt) => total + opt.option.price * opt.quantity,
+  //     0
+  //   );
+
+  //   doc.text(`Options: ${optionsTotal.toFixed(2)} €`, margin, currentY);
+  // }
 
   // --- Signatures ---
-  checkAndAddPage(30); // Spacing + line height
-  const signatureY = pageHeight - bottomMargin - 5; // Position signatures near the bottom
-  if (currentY > signatureY - 20) {
-    // If content is too close, add a page
-    doc.addPage();
-    currentY = margin;
-  }
+  currentY = pageHeight - 40; // Position signatures near the bottom
+  currentY = checkAndAddNewPage(doc, currentY, margin);
 
   doc.setFontSize(10);
-  const signatureXClient = margin;
-  const signatureXStaff = doc.internal.pageSize.getWidth() / 2 + margin / 2;
-  const signatureLineWidth =
-    doc.internal.pageSize.getWidth() / 2 - margin * 1.5;
+  doc.setFont("helvetica", "normal");
 
-  doc.text("Signature client:", signatureXClient, signatureY);
-  doc.line(
-    signatureXClient,
-    signatureY + 2,
-    signatureXClient + signatureLineWidth,
-    signatureY + 2
-  );
+  // Signature P.S.
+  doc.text("Signature P.S. :", margin, currentY);
 
-  doc.text("Signature du staff:", signatureXStaff, signatureY);
-  doc.line(
-    signatureXStaff,
-    signatureY + 2,
-    signatureXStaff + signatureLineWidth,
-    signatureY + 2
-  );
+  // Signature du Client
+  doc.text("Signature du Client :", pageWidth - margin - 80, currentY);
 
   // Add footer
   const pageCount = doc.getNumberOfPages();
   for (let i = 1; i <= pageCount; i++) {
     doc.setPage(i);
-    doc.setFontSize(10);
+    doc.setFontSize(8);
+    doc.setTextColor(100);
     doc.text(
       "ParkAero Direct - Votre solution de stationnement aéroportuaire",
       doc.internal.pageSize.getWidth() / 2,
-      doc.internal.pageSize.getHeight() - 10,
+      doc.internal.pageSize.getHeight() - 5,
       { align: "center" }
     );
   }
@@ -314,7 +438,7 @@ export const generateReservationsListPDF = (
     doc.text(
       "ParkAero Direct - Votre solution de stationnement aéroportuaire",
       doc.internal.pageSize.getWidth() / 2,
-      doc.internal.pageSize.getHeight() - 10,
+      doc.internal.pageSize.getHeight() - 30,
       { align: "center" }
     );
   }

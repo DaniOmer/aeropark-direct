@@ -558,6 +558,7 @@ export type ReservationData = {
   total_price: number;
   status: string;
   number?: string;
+  flight_number?: string;
   created_at?: string;
   updated_at?: string;
 };
