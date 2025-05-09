@@ -6,6 +6,7 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { AuthProvider } from "@/contexts/auth-context";
+import { WhatsAppButton } from "@/components/whatsapp-button";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -179,6 +180,7 @@ export default function RootLayout({
                     </div>
                   </footer>
                 </div>
+                <WhatsAppButton phoneNumber="+33783829260" />
               </main>
             </ToastProvider>
           </AuthProvider>

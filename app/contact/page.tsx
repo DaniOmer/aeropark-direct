@@ -106,7 +106,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Email</h3>
                   <p className="text-muted-foreground">
-                    contact@parkaero-direct.fr
+                    aeroparkdirect@hotmail.com
                   </p>
                   <p className="text-muted-foreground mt-2">
                     <span className="font-medium">Délai de réponse :</span> Sous
@@ -388,7 +388,7 @@ export default function ContactPage() {
               Nous appeler
             </a>
             <a
-              href="mailto:contact@parkaero-direct.fr"
+              href="mailto:aeroparkdirect@hotmail.com"
               className="inline-flex items-center justify-center rounded-md bg-white/20 text-white border border-white/30 px-6 py-3 text-base font-medium shadow-sm hover:bg-white/30 transition-colors"
             >
               <svg
