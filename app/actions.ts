@@ -111,6 +111,53 @@ export const signInAction = async (formData: FormData) => {
     return encodedRedirect("error", "/sign-in", error.message);
   }
 
+  // Send login notification email to admin users
+  try {
+    // Import email service functions
+    const { sendEmail, generateLoginNotificationEmail } = await import(
+      "@/utils/email-service"
+    );
+
+    // Get all admin users
+    const { data: adminUsers, error: adminUsersError } = await supabase
+      .from("users")
+      .select("email, first_name, last_name")
+      .eq("role", "admin");
+
+    if (adminUsersError) {
+      console.error("Error fetching admin users:", adminUsersError);
+      // Continue even if we can't fetch admin users, as the login was successful
+    } else if (adminUsers && adminUsers.length > 0) {
+      // Generate login notification email content
+      const htmlContent = generateLoginNotificationEmail(email);
+
+      // Send notification to all admin users
+      const adminEmailResult = await sendEmail({
+        to: adminUsers.map((admin) => ({
+          email: admin.email,
+          name: `${admin.first_name} ${admin.last_name}`,
+        })),
+        subject: `Notification de connexion - ${email}`,
+        htmlContent: htmlContent,
+      });
+
+      if (!adminEmailResult.success) {
+        console.error(
+          "Error sending login notification to admin users:",
+          adminEmailResult.error
+        );
+        // Continue even if admin emails fail, as the login was successful
+      } else {
+        console.log("Login notification emails sent successfully to admins");
+      }
+    } else {
+      console.log("No admin users found to notify about login");
+    }
+  } catch (emailError) {
+    console.error("Error sending login notification emails:", emailError);
+    // Continue even if there's an error with the email notification, as the login was successful
+  }
+
   // Redirect to returnUrl if provided, otherwise to protected page
   if (returnUrl) {
     return redirect(returnUrl);

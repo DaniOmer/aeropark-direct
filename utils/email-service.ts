@@ -17,6 +17,60 @@ export interface EmailData {
 }
 
 /**
+ * Generate HTML content for login notification email
+ * @param userEmail The email of the user who logged in
+ * @returns HTML content string
+ */
+export function generateLoginNotificationEmail(userEmail: string): string {
+  const loginTime = new Date().toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Notification de connexion - ParkAero Direct</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #3b82f6; margin-bottom: 10px;">Notification de connexion</h1>
+        <p style="font-size: 16px; color: #6b7280;">
+          Une connexion a été effectuée sur votre application.
+        </p>
+      </div>
+      
+      <div style="background-color: #f9fafb; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+        <h2 style="font-size: 20px; margin-top: 0; margin-bottom: 20px;">Détails de la connexion</h2>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Utilisateur</p>
+          <p style="font-weight: 500; margin-top: 0;">${userEmail}</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+          <p style="font-size: 14px; color: #6b7280; margin-bottom: 5px;">Date et heure</p>
+          <p style="font-weight: 500; margin-top: 0;">${loginTime}</p>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; font-size: 12px; color: #9ca3af;">
+        <p>Ceci est un email automatique envoyé pour tester le système d'envoi d'emails.</p>
+        <p>© ${new Date().getFullYear()} ParkAero Direct. Tous droits réservés.</p>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
  * Send an email using Brevo API
  * @param emailData The email data to send
  * @returns Promise with the API response

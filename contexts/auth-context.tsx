@@ -55,6 +55,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       if (error) throw error;
       signedInUser = await fetchUser();
+
+      // Send login notification to admin users
+      try {
+        const baseUrl = window.location.origin;
+        const response = await fetch(`${baseUrl}/api/login-notification`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userEmail: email }),
+        });
+
+        if (!response.ok) {
+          console.error(
+            "Failed to send login notification:",
+            await response.text()
+          );
+        } else {
+          console.log("Login notification sent successfully");
+        }
+      } catch (notificationError) {
+        // Just log the error, don't interrupt the login flow
+        console.error("Error sending login notification:", notificationError);
+      }
+
       return signedInUser;
     } catch (error) {
       console.error("Error signing in:", error);
