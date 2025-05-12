@@ -60,7 +60,8 @@ export const updateSession = async (request: NextRequest) => {
     // admin routes
     if (
       request.nextUrl.pathname.startsWith("/admin") &&
-      userData?.role !== "admin"
+      userData?.role !== "admin" &&
+      userData?.role !== "super_admin"
     ) {
       return NextResponse.redirect(new URL("/", request.url));
     }
@@ -69,7 +70,7 @@ export const updateSession = async (request: NextRequest) => {
       request.nextUrl.pathname === "/sign-in" ||
       (request.nextUrl.pathname === "/sign-up" && userData)
     ) {
-      if (userData?.role === "admin") {
+      if (userData?.role === "admin" || userData?.role === "super_admin") {
         console.log("admin");
         return NextResponse.redirect(new URL("/admin", request.url));
       } else if (userData?.role === "user") {

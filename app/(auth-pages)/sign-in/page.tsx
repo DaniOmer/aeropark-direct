@@ -35,7 +35,10 @@ function SignInForm() {
       if (returnUrl) {
         router.push(returnUrl);
       } else {
-        if (signedInUser?.role === "admin") {
+        if (
+          signedInUser?.role === "admin" ||
+          signedInUser?.role === "super_admin"
+        ) {
           router.push("/admin");
         } else {
           router.push("/protected");
