@@ -57,7 +57,7 @@ export default function Header() {
             {!loading && user ? (
               <div className="flex items-center gap-4 justify-end">
                 Hey, {user.email} !
-                {user?.role === "admin" ? (
+                {user?.role === "admin" || user?.role === "super_admin" ? (
                   <Button
                     onClick={() => router.push("/admin")}
                     variant={"outline"}
@@ -139,7 +139,7 @@ export default function Header() {
             {!loading && user ? (
               <div className="flex flex-col items-center gap-4 justify-end mt-12">
                 Hey, {user.email}!
-                {user?.role === "admin" ? (
+                {user?.role === "admin" || user?.role === "super_admin" ? (
                   <Button
                     onClick={() => {
                       router.push("/admin");
