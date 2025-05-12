@@ -102,82 +102,15 @@ export async function POST(request: NextRequest) {
     } catch (stripeError: any) {
       console.error("Stripe error creating payment intent:", stripeError);
 
-      // For development/testing purposes, provide a fallback to allow the flow to continue
-      // In production, you would want to return the error and handle it properly
-      console.log("Using fallback for development/testing purposes");
-
-      // Record a payment in the database
-      const paymentId = `fallback_${Date.now()}`;
-      const { error: paymentError } = await supabase.from("payments").insert([
+      // Return a clear error message to the client
+      return NextResponse.json(
         {
-          reservation_id: reservationId,
-          amount,
-          method: "card",
-          status: "succeeded",
-          stripe_id: paymentId,
+          error:
+            "Erreur lors de la création du paiement. Veuillez réessayer ou contacter le support.",
+          details: stripeError.message,
         },
-      ]);
-
-      if (paymentError) {
-        console.error("Error recording payment:", paymentError);
-        return NextResponse.json(
-          { error: "Failed to record payment" },
-          { status: 500 }
-        );
-      }
-
-      // Update the reservation status to "confirmed" as a fallback
-      const { data: updatedReservation, error: updateError } = await supabase
-        .from("reservations")
-        .update({ status: "confirmed", cgv: true })
-        .eq("id", reservationId)
-        .single();
-
-      if (updateError) {
-        console.error("Error updating reservation status:", updateError);
-        return NextResponse.json(
-          { error: "Failed to update reservation status" },
-          { status: 500 }
-        );
-      }
-
-      // Trigger the webhook to send confirmation email
-      try {
-        // Build the absolute URL for the webhook
-        const baseUrl = new URL(request.url).origin;
-        const webhookUrl = `${baseUrl}/api/payment-webhook`;
-
-        console.log("Calling webhook at:", webhookUrl);
-
-        const webhookResponse = await fetch(webhookUrl, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            reservationId,
-            paymentStatus: "succeeded",
-            paymentId,
-          }),
-        });
-
-        if (!webhookResponse.ok) {
-          console.error("Error triggering payment webhook in fallback mode");
-          // We don't return an error here as the payment was successful
-        }
-      } catch (webhookError) {
-        console.error(
-          "Error calling payment webhook in fallback mode:",
-          webhookError
-        );
-        // We don't return an error here as the payment was successful
-      }
-
-      // Return a success response to allow the flow to continue
-      return NextResponse.json({
-        message: "Reservation status updated to confirmed (fallback mode)",
-        fallbackMode: true,
-      });
+        { status: 500 }
+      );
     }
   } catch (error: any) {
     console.error("Error creating payment intent:", error);

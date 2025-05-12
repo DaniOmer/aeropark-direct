@@ -77,9 +77,14 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
    ```
    NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
    NEXT_PUBLIC_SUPABASE_ANON_KEY=[INSERT SUPABASE PROJECT API ANON KEY]
+   STRIPE_SECRET_KEY=[INSERT STRIPE SECRET KEY]
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=[INSERT STRIPE PUBLISHABLE KEY]
+   NEXT_PUBLIC_BASE_URL=[INSERT YOUR PRODUCTION URL OR http://localhost:3000 FOR LOCAL]
    ```
 
-   Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
+   - Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` can be found in [your Supabase project's API settings](https://app.supabase.com/project/_/settings/api)
+   - `STRIPE_SECRET_KEY` and `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` can be found in your [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
+   - `NEXT_PUBLIC_BASE_URL` should be your production URL (e.g., https://yourdomain.com) or http://localhost:3000 for local development
 
 5. Run migrations with following commands:
 
@@ -103,6 +108,27 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 ## Feedback and issues
 
 Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+
+## Stripe Integration
+
+This project includes Stripe integration for processing payments. The integration is configured to:
+
+1. Create payment intents using the Stripe API
+2. Process payments securely on the client side
+3. Update reservation status based on payment results
+4. Send confirmation emails after successful payments
+
+### Payment Processing Security
+
+The payment system has been designed to ensure that reservations are only confirmed when payments are successfully completed. Any errors during the payment process are properly handled and displayed to the user.
+
+Previously, the system included a development fallback mechanism that could automatically confirm reservations even when payments failed. This fallback has been completely removed to ensure consistent behavior across all environments.
+
+If you encounter issues with payments in production, verify that:
+
+1. Your Stripe API keys are correctly configured in your environment variables
+2. The Stripe account is properly set up and active
+3. The webhook endpoints are correctly configured
 
 ## More Supabase examples
 

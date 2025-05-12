@@ -36,8 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Reservation ID:", reservationId);
-
     // Get the reservation details
     const reservation = await getReservationById(reservationId);
 

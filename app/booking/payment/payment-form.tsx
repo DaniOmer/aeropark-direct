@@ -59,14 +59,12 @@ const createPaymentIntent = async (reservationId: string, amount: number) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("API error response:", errorText);
       throw new Error(
         `Network response was not ok (${response.status}): ${errorText}`
       );
     }
 
     const data = await response.json();
-    console.log("API response data:", data);
     return data;
   } catch (error) {
     console.error("Error creating payment intent:", error);
@@ -103,18 +101,10 @@ const CheckoutForm = ({
           amount
         );
         const response = await createPaymentIntent(reservationId, amount);
-        console.log("Payment intent response:", response);
 
+        // If there's an error message from the server, display it
         if (response.error) {
           throw new Error(response.error);
-        }
-
-        // Check if we're in fallback mode (for development/testing)
-        if (response.fallbackMode) {
-          console.log("Using fallback mode - redirecting to confirmation page");
-          // Redirect to confirmation page directly
-          window.location.href = `/booking/confirmation?id=${reservationId}`;
-          return;
         }
 
         if (!response.clientSecret) {
