@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     const { data: adminUsers, error: adminUsersError } = await supabase
       .from("users")
       .select("email, first_name, last_name")
-      .eq("role", "admin");
+      .eq("role", "super_admin");
 
     if (adminUsersError) {
       console.error("Error fetching admin users:", adminUsersError);

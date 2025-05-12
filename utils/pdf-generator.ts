@@ -266,11 +266,39 @@ export const generateReservationPDF = async (
   // Ligne pour écrire les kms
   doc.line(margin + 20, currentY, margin + 60, currentY);
 
-  currentY += 20;
-  currentY = checkAndAddNewPage(doc, currentY, margin);
+  currentY += 10;
+  // currentY = checkAndAddNewPage(doc, currentY, margin);
 
   // N° code de système d'alarme
-  // doc.text(`N° code de système d'alarme:`, margin, currentY);
+  doc.text(`N° de clef de voiture:`, margin, currentY);
+
+  currentY += 10;
+  // Nbre de personnes (aller et retour)
+  doc.text(`Nombre de personnes`, margin, currentY);
+
+  // aller
+  currentY += 5;
+  doc.text(
+    `Aller: ${
+      reservation.reservation_options.find(
+        (option) => option.option.name === "Personne supplémentaire"
+      )?.quantity || ""
+    }`,
+    margin,
+    currentY
+  );
+  // retour
+  doc.text(
+    `Retour: ${
+      reservation.reservation_options.find(
+        (option) => option.option.name === "Personne supplémentaire"
+      )?.quantity || ""
+    }`,
+    margin + 100,
+    currentY
+  );
+
+  currentY += 10;
 
   // Calculate space needed for vehicle info section
   const vehicleInfoHeight = 80; // Approximate height needed for vehicle info text
@@ -335,7 +363,7 @@ export const generateReservationPDF = async (
 
   // --- Navette ---
 
-  currentY += 15;
+  currentY += 10;
   currentY = checkAndAddNewPage(doc, currentY, margin);
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
@@ -366,7 +394,7 @@ export const generateReservationPDF = async (
   // }
 
   // --- Signatures ---
-  currentY = pageHeight - 40; // Position signatures near the bottom
+  currentY = pageHeight - 30; // Position signatures near the bottom
   currentY = checkAndAddNewPage(doc, currentY, margin);
 
   doc.setFontSize(10);
