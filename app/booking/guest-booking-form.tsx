@@ -43,6 +43,7 @@ export default function GuestBookingForm({
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [flightNumber, setFlightNumber] = useState("");
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
 
   // User information states
   const [step, setStep] = useState(1); // 1: Vehicle info, 2: User info
@@ -73,8 +74,14 @@ export default function GuestBookingForm({
     return total + (option ? option.price * opt.quantity : 0);
   }, 0);
 
+  // Calculate additional fee for number of people
+  let peopleAdditionalFee = 0;
+  if (numberOfPeople > (priceData.people_threshold || 4)) {
+    peopleAdditionalFee = priceData.additional_people_fee || 8.0;
+  }
+
   // Total price
-  const totalPrice = basePrice + optionsPrice;
+  const totalPrice = basePrice + optionsPrice + peopleAdditionalFee;
 
   // Handle option selection
   const handleOptionChange = (optionId: string, checked: boolean) => {
@@ -180,6 +187,7 @@ export default function GuestBookingForm({
             vehicle_color: vehicleColor,
             vehicle_plate: vehiclePlate,
             flight_number: flightNumber,
+            number_of_people: numberOfPeople,
             parking_lot_id: parkingLot.id,
             options: selectedOptions,
           },
@@ -370,6 +378,33 @@ export default function GuestBookingForm({
                   placeholder="Ex: AF1234"
                 />
               </div>
+              <div>
+                <Label
+                  htmlFor="numberOfPeople"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Nombre de personnes
+                </Label>
+                <select
+                  id="numberOfPeople"
+                  value={numberOfPeople}
+                  onChange={(e) => setNumberOfPeople(parseInt(e.target.value))}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  required
+                >
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? "personne" : "personnes"}
+                    </option>
+                  ))}
+                </select>
+                {numberOfPeople > (priceData.people_threshold || 4) && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Supplément de {priceData.additional_people_fee || 8}€ pour{" "}
+                    {numberOfPeople} personnes
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
@@ -482,6 +517,14 @@ export default function GuestBookingForm({
               <span className="text-base font-medium">Options</span>
               <span className="text-base">{optionsPrice} €</span>
             </div>
+            {peopleAdditionalFee > 0 && (
+              <div className="flex justify-between mt-2">
+                <span className="text-base font-medium">
+                  Supplément personnes
+                </span>
+                <span className="text-base">{peopleAdditionalFee} €</span>
+              </div>
+            )}
             <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
               <span className="text-lg font-bold">Total</span>
               <span className="text-lg font-bold">{totalPrice} €</span>

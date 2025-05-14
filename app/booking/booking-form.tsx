@@ -48,6 +48,7 @@ export default function BookingForm({
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
   const [flightNumber, setFlightNumber] = useState("");
+  const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [cgvAccepted, setCgvAccepted] = useState(false);
   const [cguAccepted, setCguAccepted] = useState(false);
 
@@ -67,8 +68,14 @@ export default function BookingForm({
     return total + (option ? option.price * opt.quantity : 0);
   }, 0);
 
+  // Calculate additional fee for number of people
+  let peopleAdditionalFee = 0;
+  if (numberOfPeople > (priceData.people_threshold || 4)) {
+    peopleAdditionalFee = priceData.additional_people_fee || 8.0;
+  }
+
   // Total price
-  const totalPrice = basePrice + optionsPrice;
+  const totalPrice = basePrice + optionsPrice + peopleAdditionalFee;
 
   // State to hold the string value of quantity inputs
   const [optionQuantities, setOptionQuantities] = useState<{
@@ -139,31 +146,34 @@ export default function BookingForm({
         vehicle_color: vehicleColor,
         vehicle_plate: vehiclePlate,
         flight_number: flightNumber,
+        number_of_people: numberOfPeople,
         options: selectedOptions.length > 0 ? selectedOptions : undefined,
         cgv: cgvAccepted,
         cgu: user === null ? cguAccepted : true,
       };
 
+      console.log("reservationData : ", reservationData);
+
       // Create reservation
-      const result = await createReservation(reservationData);
+      // const result = await createReservation(reservationData);
 
-      if (result.success) {
-        // Redirect to payment page
-        console.log(
-          "Reservation created successfully, redirecting to payment page",
-          result.id
-        );
+      // if (result.success) {
+      //   // Redirect to payment page
+      //   console.log(
+      //     "Reservation created successfully, redirecting to payment page",
+      //     result.id
+      //   );
 
-        router.replace(`/booking/payment?id=${result.id}`);
+      //   router.replace(`/booking/payment?id=${result.id}`);
 
-        // Prevent any further code execution
-        return;
-      } else {
-        setError(
-          result.error ||
-            "Une erreur est survenue lors de la création de la réservation"
-        );
-      }
+      //   // Prevent any further code execution
+      //   return;
+      // } else {
+      //   setError(
+      //     result.error ||
+      //       "Une erreur est survenue lors de la création de la réservation"
+      //   );
+      // }
     } catch (err) {
       setError("Une erreur est survenue lors de la création de la réservation");
       console.error(err);
@@ -334,6 +344,33 @@ export default function BookingForm({
                 placeholder="Ex: AF1234"
               />
             </div>
+            <div>
+              <Label
+                htmlFor="numberOfPeople"
+                className="block text-sm font-medium mb-1"
+              >
+                Nombre de personnes
+              </Label>
+              <select
+                id="numberOfPeople"
+                value={numberOfPeople}
+                onChange={(e) => setNumberOfPeople(parseInt(e.target.value))}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              >
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <option key={num} value={num}>
+                    {num} {num === 1 ? "personne" : "personnes"}
+                  </option>
+                ))}
+              </select>
+              {numberOfPeople > (priceData.people_threshold || 4) && (
+                <p className="text-xs text-amber-600 mt-1">
+                  Supplément de {priceData.additional_people_fee || 8}€ pour{" "}
+                  {numberOfPeople} personnes
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -446,6 +483,14 @@ export default function BookingForm({
             <span className="text-base font-medium">Options</span>
             <span className="text-base">{optionsPrice} €</span>
           </div>
+          {peopleAdditionalFee > 0 && (
+            <div className="flex justify-between mt-2">
+              <span className="text-base font-medium">
+                Supplément personnes
+              </span>
+              <span className="text-base">{peopleAdditionalFee} €</span>
+            </div>
+          )}
           <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <span className="text-lg font-bold">Total</span>
             <span className="text-lg font-bold">{totalPrice} €</span>

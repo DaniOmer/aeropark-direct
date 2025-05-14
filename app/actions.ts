@@ -253,6 +253,8 @@ export type PriceData = {
   late_fee: number;
   currency: string;
   is_active: boolean;
+  people_threshold?: number;
+  additional_people_fee?: number;
   created_at?: string;
   updated_at?: string;
 };
@@ -606,6 +608,7 @@ export type ReservationData = {
   status: string;
   number?: string;
   flight_number?: string;
+  number_of_people?: number;
   created_at?: string;
   updated_at?: string;
 };
@@ -1146,6 +1149,7 @@ export type ReservationWithOptions = {
   vehicle_model: string;
   vehicle_color: string;
   vehicle_plate: string;
+  number_of_people?: number;
   cgv: boolean;
   cgu: boolean;
   options?: { option_id: string; quantity: number }[];
@@ -1260,6 +1264,14 @@ export const createReservation = async (
 
   // Add options price to total
   totalPrice += optionsPrice;
+
+  // Add additional fee for number of people if applicable
+  if (
+    reservationData.number_of_people &&
+    reservationData.number_of_people > (priceData.people_threshold || 4)
+  ) {
+    totalPrice += priceData.additional_people_fee || 8.0;
+  }
 
   // Create a copy of reservationData without the options field
   const { options, cgu, ...reservationDataWithoutOptions } = reservationData;

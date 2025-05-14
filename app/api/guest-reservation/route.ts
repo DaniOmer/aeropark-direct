@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       vehicle_plate: reservation.vehicle_plate,
       options: reservation.options,
       flight_number: reservation.flight_number,
+      number_of_people: reservation.number_of_people,
       cgu: reservation.cgv,
       cgv: reservation.cgv,
     };

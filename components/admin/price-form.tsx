@@ -42,6 +42,8 @@ export default function PriceForm({
     late_fee: initialData?.late_fee || 0,
     currency: initialData?.currency || "EUR",
     is_active: initialData?.is_active ?? true,
+    people_threshold: initialData?.people_threshold || 4,
+    additional_people_fee: initialData?.additional_people_fee || 8.0,
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -196,6 +198,53 @@ export default function PriceForm({
             <option value="USD">USD</option>
             <option value="GBP">GBP</option>
           </select>
+        </div>
+
+        <div>
+          <Label
+            htmlFor="people_threshold"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Seuil de personnes
+          </Label>
+          <Input
+            id="people_threshold"
+            name="people_threshold"
+            type="number"
+            min="1"
+            max="6"
+            value={formData.people_threshold}
+            onChange={handleChange}
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Nombre de personnes à partir duquel un supplément est appliqué
+          </p>
+        </div>
+
+        <div>
+          <Label
+            htmlFor="additional_people_fee"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Supplément personnes (€)
+          </Label>
+          <Input
+            id="additional_people_fee"
+            name="additional_people_fee"
+            type="number"
+            step="0.01"
+            min="0"
+            value={formData.additional_people_fee}
+            onChange={handleChange}
+            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            required
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Frais supplémentaires appliqués lorsque le nombre de personnes
+            dépasse le seuil
+          </p>
         </div>
 
         <div className="flex items-center space-x-2">

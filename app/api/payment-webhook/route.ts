@@ -89,11 +89,11 @@ export async function POST(request: NextRequest) {
 
     console.log("Confirmation email sent successfully to customer");
 
-    // Get all admin users
+    // Get all admin and super admin users
     const { data: adminUsers, error: adminUsersError } = await supabase
       .from("users")
       .select("email, first_name, last_name")
-      .eq("role", "admin");
+      .in("role", ["super_admin", "admin"]);
 
     if (adminUsersError) {
       console.error("Error fetching admin users:", adminUsersError);

@@ -263,6 +263,14 @@ export default function ReservationDetailsModal({
                     {formatDate(reservation.created_at || "")}
                   </p>
                 </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Nombre de personnes
+                  </p>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {reservation.number_of_people || 1}
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -460,6 +468,17 @@ export default function ReservationDetailsModal({
                   {optionsTotal} €
                 </span>
               </div>
+              {reservation.number_of_people &&
+                reservation.number_of_people > 4 && (
+                  <div className="flex justify-between mt-2">
+                    <span className="text-base font-medium text-gray-900 dark:text-white">
+                      Supplément personnes
+                    </span>
+                    <span className="text-base text-gray-900 dark:text-white">
+                      8 €
+                    </span>
+                  </div>
+                )}
               <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
                   Total

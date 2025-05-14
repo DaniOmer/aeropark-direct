@@ -278,22 +278,10 @@ export const generateReservationPDF = async (
 
   // aller
   currentY += 5;
-  doc.text(
-    `Aller: ${
-      reservation.reservation_options.find(
-        (option) => option.option.name === "Personne supplémentaire"
-      )?.quantity || ""
-    }`,
-    margin,
-    currentY
-  );
+  doc.text(`Aller: ${reservation.number_of_people || 1}`, margin, currentY);
   // retour
   doc.text(
-    `Retour: ${
-      reservation.reservation_options.find(
-        (option) => option.option.name === "Personne supplémentaire"
-      )?.quantity || ""
-    }`,
+    `Retour: ${reservation.number_of_people || 1}`,
     margin + 100,
     currentY
   );
