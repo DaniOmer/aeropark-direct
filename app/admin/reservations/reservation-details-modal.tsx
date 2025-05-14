@@ -11,8 +11,49 @@ import { generateReservationPDF } from "@/utils/pdf-generator";
 
 // Helper function to format dates
 export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return format(date, "dd MMMM yyyy à HH:mm", { locale: fr });
+  if (!dateString) return "";
+
+  // Parse the date parts manually to avoid timezone issues
+  let dateParts;
+  let hours = 0;
+  let minutes = 0;
+
+  // Handle ISO format with T separator and possible timezone (2025-05-14T05:00:00Z)
+  if (dateString.includes("T")) {
+    const [datePart, timePart] = dateString.split("T");
+    dateParts = datePart.split("-").map(Number);
+
+    // Extract time, removing any timezone indicator
+    const timeString = timePart.replace("Z", "").split("+")[0].split("-")[0];
+    const [hoursStr, minutesStr] = timeString.split(":");
+    hours = parseInt(hoursStr, 10);
+    minutes = parseInt(minutesStr, 10);
+  }
+  // Handle simple format without T (2025-05-14 05:00:00)
+  else if (dateString.includes("-") && dateString.includes(":")) {
+    const [datePart, timePart] = dateString.split(" ");
+    dateParts = datePart.split("-").map(Number);
+
+    const [hoursStr, minutesStr] = timePart.split(":");
+    hours = parseInt(hoursStr, 10);
+    minutes = parseInt(minutesStr, 10);
+  }
+  // Fallback to standard Date parsing if format is not recognized
+  else {
+    const date = new Date(dateString);
+    return format(date, "dd MMMM yyyy à HH:mm", { locale: fr });
+  }
+
+  // Create date with explicit year, month (0-based), day, hours, minutes
+  const localDate = new Date(
+    dateParts[0], // year
+    dateParts[1] - 1, // month (0-based)
+    dateParts[2], // day
+    hours,
+    minutes
+  );
+
+  return format(localDate, "dd MMMM yyyy à HH:mm", { locale: fr });
 };
 
 // Helper function to get status badge color

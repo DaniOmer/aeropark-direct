@@ -152,28 +152,26 @@ export default function BookingForm({
         cgu: user === null ? cguAccepted : true,
       };
 
-      console.log("reservationData : ", reservationData);
-
       // Create reservation
-      // const result = await createReservation(reservationData);
+      const result = await createReservation(reservationData);
 
-      // if (result.success) {
-      //   // Redirect to payment page
-      //   console.log(
-      //     "Reservation created successfully, redirecting to payment page",
-      //     result.id
-      //   );
+      if (result.success) {
+        // Redirect to payment page
+        console.log(
+          "Reservation created successfully, redirecting to payment page",
+          result.id
+        );
 
-      //   router.replace(`/booking/payment?id=${result.id}`);
+        router.replace(`/booking/payment?id=${result.id}`);
 
-      //   // Prevent any further code execution
-      //   return;
-      // } else {
-      //   setError(
-      //     result.error ||
-      //       "Une erreur est survenue lors de la création de la réservation"
-      //   );
-      // }
+        // Prevent any further code execution
+        return;
+      } else {
+        setError(
+          result.error ||
+            "Une erreur est survenue lors de la création de la réservation"
+        );
+      }
     } catch (err) {
       setError("Une erreur est survenue lors de la création de la réservation");
       console.error(err);
