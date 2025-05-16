@@ -55,12 +55,39 @@ export default function BookingForm({
 
   // Calculate price
   const days = calculateDays(startDate, endDate);
-  let basePrice = priceData.base_price;
 
-  // Add price for additional days if applicable
-  if (days > priceData.base_duration_days) {
-    const additionalDays = days - priceData.base_duration_days;
-    basePrice += additionalDays * priceData.additional_day_price;
+  // Get price based on duration from the priceData.duration_prices array if available
+  let basePrice = 0;
+  if (priceData.duration_prices && priceData.duration_prices.length > 0) {
+    // Find the exact match for the number of days
+    const exactMatch = priceData.duration_prices.find(
+      (dp) => dp.duration_days === days
+    );
+    if (exactMatch) {
+      basePrice = exactMatch.price;
+    } else {
+      // If no exact match, find the price for the closest higher duration
+      const higherDuration = priceData.duration_prices
+        .filter((dp) => dp.duration_days > days)
+        .sort((a, b) => a.duration_days - b.duration_days)[0];
+
+      if (higherDuration) {
+        basePrice = higherDuration.price;
+      } else {
+        // If no higher duration, use the highest available duration
+        const highestDuration = priceData.duration_prices.sort(
+          (a, b) => b.duration_days - a.duration_days
+        )[0];
+        basePrice = highestDuration.price;
+      }
+    }
+  } else {
+    // Fallback to old pricing model if duration_prices is not available
+    basePrice = priceData.base_price;
+    if (days > priceData.base_duration_days) {
+      const additionalDays = days - priceData.base_duration_days;
+      basePrice += additionalDays * priceData.additional_day_price;
+    }
   }
 
   // Calculate options price

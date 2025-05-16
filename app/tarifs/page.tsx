@@ -2,14 +2,18 @@ import React from "react";
 import {
   getPricingData,
   getActiveOptionsData,
+  getDurationPrices,
   type PriceData,
   type OptionData,
+  type DurationPriceData,
 } from "../actions";
-import { UIPricingPlan } from "./types";
+import { UIPricingPlan, UIDurationPrice } from "./types";
 import PricingCalculator from "@/components/pricing-calculator";
 
 // Function to transform pricing data from database to UI format
-const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
+const transformPricingData = async (
+  prices: PriceData[]
+): Promise<UIPricingPlan[]> => {
   // Default features for all plans
   const baseFeatures = [
     "Parking sécurisé 24h/24",
@@ -39,7 +43,11 @@ const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
     (a, b) => a.base_duration_days - b.base_duration_days
   );
 
-  return sortedPrices.map((price, index) => {
+  // Create an array to hold the transformed pricing plans
+  const pricingPlans: UIPricingPlan[] = [];
+
+  // Transform each price into a UI pricing plan
+  for (const price of sortedPrices) {
     // Determine plan name and duration based on base_duration_days
     let name, duration;
     let additionalFeatures = [];
@@ -70,7 +78,17 @@ const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
       );
     }
 
-    return {
+    // Fetch duration prices for this price
+    const durationPrices = await getDurationPrices(price.id);
+
+    // Transform duration prices to UI format
+    const uiDurationPrices: UIDurationPrice[] = durationPrices.map((dp) => ({
+      id: dp.id,
+      duration_days: dp.duration_days,
+      price: dp.price,
+    }));
+
+    pricingPlans.push({
       id: price.id,
       name,
       duration,
@@ -80,14 +98,17 @@ const transformPricingData = (prices: PriceData[]): UIPricingPlan[] => {
       additional_day_price: price.additional_day_price,
       late_fee: price.late_fee,
       popular,
-    };
-  });
+      duration_prices: uiDurationPrices,
+    });
+  }
+
+  return pricingPlans;
 };
 
 // Fetch pricing data from the database
 async function getPricingPlans() {
   const prices = await getPricingData();
-  return transformPricingData(prices);
+  return await transformPricingData(prices);
 }
 
 // Fetch active options data from the database
@@ -118,75 +139,152 @@ export default async function TarifsPage() {
       {/* Main Pricing Section */}
       <section className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold mb-4">Forfaits de stationnement</h2>
+          <h2 className="text-3xl font-bold mb-4">Tarifs ParkAero Direct</h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Choisissez le forfait qui correspond à la durée de votre voyage.
-            Tous nos forfaits incluent l'accès à notre navette gratuite 24h/24
-            et 7j/7.
+            Consultez nos tarifs en fonction de la durée de votre séjour. Tous
+            nos forfaits incluent l'accès à notre navette gratuite 24h/24 et
+            7j/7.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {pricingData.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-card rounded-xl shadow-md overflow-hidden relative ${
-                plan.popular ? "ring-2 ring-primary" : ""
-              }`}
-            >
-              {plan.popular && (
-                <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-xs font-medium">
-                  Populaire
+        {/* Display the pricing table */}
+        <div className="mb-12">
+          {pricingData.length > 0 &&
+          pricingData[0].duration_prices &&
+          pricingData[0].duration_prices.length > 0 ? (
+            <div className="overflow-x-auto">
+              <div className="flex justify-center">
+                <div className="grid grid-cols-2 gap-8 max-w-4xl">
+                  <div className="bg-card rounded-xl shadow-md overflow-hidden">
+                    <div className="p-4 bg-primary text-primary-foreground">
+                      <h3 className="text-xl font-bold text-center">
+                        Jours 1-20
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left">Jours</th>
+                            <th className="py-2 text-right">Tarifs (euros)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pricingData[0].duration_prices
+                            .filter((dp) => dp.duration_days <= 20)
+                            .sort((a, b) => a.duration_days - b.duration_days)
+                            .map((dp) => (
+                              <tr key={dp.id} className="border-b">
+                                <td className="py-2">{dp.duration_days}</td>
+                                <td className="py-2 text-right font-semibold">
+                                  {dp.price}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div className="bg-card rounded-xl shadow-md overflow-hidden">
+                    <div className="p-4 bg-primary text-primary-foreground">
+                      <h3 className="text-xl font-bold text-center">
+                        Jours 21-31
+                      </h3>
+                    </div>
+                    <div className="p-4">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="py-2 text-left">Jours</th>
+                            <th className="py-2 text-right">Tarifs (euros)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {pricingData[0].duration_prices
+                            .filter((dp) => dp.duration_days > 20)
+                            .sort((a, b) => a.duration_days - b.duration_days)
+                            .map((dp) => (
+                              <tr key={dp.id} className="border-b">
+                                <td className="py-2">{dp.duration_days}</td>
+                                <td className="py-2 text-right font-semibold">
+                                  {dp.price}
+                                </td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
-              )}
-              <div className="p-6">
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  {plan.duration}
-                </p>
-                <div className="flex items-baseline mb-6">
-                  <span className="text-3xl font-bold">{plan.price}€</span>
-                  <span className="text-sm text-muted-foreground ml-2">
-                    pour {plan.base_duration_days} jours
-                  </span>
-                </div>
-                <div className="text-sm text-muted-foreground mb-4">
-                  <p>+{plan.additional_day_price}€ par jour supplémentaire</p>
-                  <p>Frais de retard: {plan.late_fee}€</p>
-                </div>
-                <ul className="space-y-3 mb-6">
-                  {plan.features.map((feature: string, index: number) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <svg
-                        className="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-                <a
-                  href="/#reservation"
-                  className={`w-full inline-flex justify-center items-center rounded-md px-4 py-2 text-sm font-medium ${
-                    plan.popular
-                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                      : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-                  } transition-colors`}
-                >
-                  Réserver maintenant
-                </a>
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {pricingData.map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`bg-card rounded-xl shadow-md overflow-hidden relative ${
+                    plan.popular ? "ring-2 ring-primary" : ""
+                  }`}
+                >
+                  {plan.popular && (
+                    <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-xs font-medium">
+                      Populaire
+                    </div>
+                  )}
+                  <div className="p-6">
+                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      {plan.duration}
+                    </p>
+                    <div className="flex items-baseline mb-6">
+                      <span className="text-3xl font-bold">{plan.price}€</span>
+                      <span className="text-sm text-muted-foreground ml-2">
+                        pour {plan.base_duration_days} jours
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-4">
+                      <p>
+                        +{plan.additional_day_price}€ par jour supplémentaire
+                      </p>
+                      <p>Frais de retard: {plan.late_fee}€</p>
+                    </div>
+                    <ul className="space-y-3 mb-6">
+                      {plan.features.map((feature: string, index: number) => (
+                        <li key={index} className="flex items-start gap-2">
+                          <svg
+                            className="h-5 w-5 text-primary mt-0.5 flex-shrink-0"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                          <span className="text-sm">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <a
+                      href="/#reservation"
+                      className={`w-full inline-flex justify-center items-center rounded-md px-4 py-2 text-sm font-medium ${
+                        plan.popular
+                          ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      } transition-colors`}
+                    >
+                      Réserver maintenant
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

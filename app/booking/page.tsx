@@ -75,6 +75,20 @@ async function BookingPageContent(searchParams: {
     redirect("/");
   }
 
+  // Get duration prices for this price
+  const { data: durationPrices, error: durationPricesError } = await supabase
+    .from("duration_prices")
+    .select("*")
+    .eq("price_id", priceData.id)
+    .order("duration_days", { ascending: true });
+
+  if (durationPricesError) {
+    console.error("Error fetching duration prices:", durationPricesError);
+  } else {
+    // Add duration prices to the price data
+    priceData.duration_prices = durationPrices || [];
+  }
+
   return (
     <div className="container mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center">

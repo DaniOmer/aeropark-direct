@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToastContext } from "@/components/providers/toast-provider";
-import { PriceData, updatePrice } from "@/app/actions";
+import {
+  PriceData,
+  updatePrice,
+  createDurationPrices,
+  deleteDurationPricesForPrice,
+} from "@/app/actions";
 import PriceForm from "@/components/admin/price-form";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
@@ -32,7 +37,8 @@ export default function EditPricePage({
   };
 
   const handleSubmit = async (
-    data: Omit<PriceData, "id" | "created_at" | "updated_at">
+    data: Omit<PriceData, "id" | "created_at" | "updated_at">,
+    durationPrices?: { id?: string; duration_days: number; price: number }[]
   ) => {
     try {
       // If no parking lot is selected but we have parking lots, use the first one
@@ -48,10 +54,25 @@ export default function EditPricePage({
         );
       }
 
+      // Handle duration prices
+      if (durationPrices && durationPrices.length > 0) {
+        // First delete existing duration prices
+        await deleteDurationPricesForPrice(id);
+
+        // Then create new ones
+        const durationPricesData = durationPrices.map((dp) => ({
+          price_id: id,
+          duration_days: dp.duration_days,
+          price: dp.price,
+        }));
+
+        await createDurationPrices(durationPricesData);
+      }
+
       addToast("Le tarif a été mis à jour avec succès", "success");
       router.push("/admin/prices");
       router.refresh();
-      return { success: true };
+      return { success: true, id };
     } catch (error) {
       console.error("Error updating price:", error);
       const errorMessage =

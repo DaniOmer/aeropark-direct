@@ -23,10 +23,10 @@ const calculateDays = (startDate: string, endDate: string): number => {
 };
 
 // Function to calculate the price based on the pricing plan and number of days
-const calculatePrice = (
+const calculatePrice = async (
   pricingPlans: UIPricingPlan[],
   days: number
-): { price: number; plan: UIPricingPlan | null } => {
+): Promise<{ price: number; plan: UIPricingPlan | null }> => {
   if (!pricingPlans || pricingPlans.length === 0 || days <= 0) {
     return { price: 0, plan: null };
   }
@@ -34,17 +34,43 @@ const calculatePrice = (
   // Find the most appropriate plan based on the number of days
   let selectedPlan = pricingPlans[0];
 
+  // Try to find a plan with duration_prices
   for (const plan of pricingPlans) {
-    if (days <= plan.base_duration_days) {
+    if (plan.duration_prices && plan.duration_prices.length > 0) {
       selectedPlan = plan;
       break;
     }
-
-    // If we've gone through all plans and none match, use the last one (longest duration)
-    selectedPlan = plan;
   }
 
-  // Calculate the price
+  // If we have duration prices, use them
+  if (selectedPlan.duration_prices && selectedPlan.duration_prices.length > 0) {
+    // Find the exact match for the number of days
+    const exactMatch = selectedPlan.duration_prices.find(
+      (dp) => dp.duration_days === days
+    );
+    if (exactMatch) {
+      return { price: exactMatch.price, plan: selectedPlan };
+    }
+
+    // If no exact match, find the closest higher duration
+    const higherDurations = selectedPlan.duration_prices
+      .filter((dp) => dp.duration_days > days)
+      .sort((a, b) => a.duration_days - b.duration_days);
+
+    if (higherDurations.length > 0) {
+      return { price: higherDurations[0].price, plan: selectedPlan };
+    }
+
+    // If no higher duration, use the highest available duration
+    const highestDuration = [...selectedPlan.duration_prices].sort(
+      (a, b) => b.duration_days - a.duration_days
+    )[0];
+
+    return { price: highestDuration.price, plan: selectedPlan };
+  }
+
+  // Fallback to the old pricing model if no duration prices are available
+  // Calculate the price using the base price and additional day price
   let totalPrice = selectedPlan.price;
 
   // Add additional day price if exceeding base duration
@@ -138,7 +164,7 @@ export default function PricingCalculator({
     );
   };
 
-  const handleCalculate = () => {
+  const handleCalculate = async () => {
     if (!startDate || !endDate) {
       alert("Veuillez sélectionner les dates de début et de fin");
       return;
@@ -168,7 +194,7 @@ export default function PricingCalculator({
       return;
     }
 
-    const { price, plan } = calculatePrice(pricingPlans, calculatedDays);
+    const { price, plan } = await calculatePrice(pricingPlans, calculatedDays);
 
     // Calculate options price
     const optionsPrice = selectedOptions.reduce((total, opt) => {

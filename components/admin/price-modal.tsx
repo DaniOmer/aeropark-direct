@@ -10,12 +10,19 @@ type ParkingLot = {
   name: string;
 };
 
+type DurationPrice = {
+  id?: string;
+  duration_days: number;
+  price: number;
+};
+
 type PriceModalProps = {
   isOpen: boolean;
   onClose: () => void;
   parkingLots: ParkingLot[];
   onSubmit: (
-    data: Omit<PriceData, "id" | "created_at" | "updated_at">
+    data: Omit<PriceData, "id" | "created_at" | "updated_at">,
+    durationPrices?: DurationPrice[]
   ) => Promise<any>;
 };
 
@@ -60,8 +67,8 @@ export default function PriceModal({
 
           <PriceForm
             parkingLots={parkingLots}
-            onSubmit={async (data) => {
-              await onSubmit(data);
+            onSubmit={async (data, durationPrices) => {
+              await onSubmit(data, durationPrices);
               onClose();
             }}
             onCancel={onClose}

@@ -3,7 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToastContext } from "@/components/providers/toast-provider";
-import { getAllPricingData, getParkingLots, createPrice } from "@/app/actions";
+import {
+  getAllPricingData,
+  getParkingLots,
+  createPrice,
+  createDurationPrices,
+} from "@/app/actions";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import PriceModal from "@/components/admin/price-modal";
@@ -89,13 +94,29 @@ export default function PricesPage({
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           parkingLots={parkingLots}
-          onSubmit={async (data) => {
+          onSubmit={async (data, durationPrices) => {
             try {
               const result = await createPrice(data);
+              if (
+                result.success &&
+                result.id &&
+                durationPrices &&
+                durationPrices.length > 0
+              ) {
+                // Create duration prices
+                const durationPricesData = durationPrices.map((dp) => ({
+                  price_id: result.id!,
+                  duration_days: dp.duration_days,
+                  price: dp.price,
+                }));
+
+                await createDurationPrices(durationPricesData);
+              }
+
               if (result.success) {
                 // Refresh the page to get the updated data
                 router.refresh();
-                return { success: true };
+                return { success: true, id: result.id };
               } else {
                 throw new Error(
                   result.error || "Erreur lors de la création du tarif"
@@ -174,13 +195,13 @@ export default function PricesPage({
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                      {price.base_price} {price.currency}
+                      Tarifs par durée
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {price.base_duration_days}
+                      1-31 jours
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                      {price.additional_day_price} {price.currency}
+                      Voir détails
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                       {price.late_fee} {price.currency}

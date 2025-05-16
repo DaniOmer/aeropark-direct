@@ -257,6 +257,17 @@ export type PriceData = {
   additional_people_fee?: number;
   created_at?: string;
   updated_at?: string;
+  duration_prices?: DurationPriceData[];
+};
+
+// Types for duration pricing data
+export type DurationPriceData = {
+  id: string;
+  price_id: string;
+  duration_days: number;
+  price: number;
+  created_at?: string;
+  updated_at?: string;
 };
 
 // Types for options data
@@ -281,6 +292,43 @@ export const getPricingData = async (): Promise<PriceData[]> => {
 
   if (error) {
     console.error("Error fetching pricing data:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch duration pricing data for a specific price
+export const getDurationPrices = async (
+  priceId: string
+): Promise<DurationPriceData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("duration_prices")
+    .select("*")
+    .eq("price_id", priceId)
+    .order("duration_days", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching duration prices:", error);
+    return [];
+  }
+
+  return data || [];
+};
+
+// Fetch all duration pricing data
+export const getAllDurationPrices = async (): Promise<DurationPriceData[]> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("duration_prices")
+    .select("*")
+    .order("duration_days", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching all duration prices:", error);
     return [];
   }
 
@@ -341,6 +389,43 @@ export const createPrice = async (
   return { success: true, id: data[0].id };
 };
 
+// Create a new duration price
+export const createDurationPrice = async (
+  durationPrice: Omit<DurationPriceData, "id" | "created_at" | "updated_at">
+): Promise<{ success: boolean; error?: string; id?: string }> => {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("duration_prices")
+    .insert([durationPrice])
+    .select();
+
+  if (error) {
+    console.error("Error creating duration price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, id: data[0].id };
+};
+
+// Create multiple duration prices
+export const createDurationPrices = async (
+  durationPrices: Omit<DurationPriceData, "id" | "created_at" | "updated_at">[]
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("duration_prices")
+    .insert(durationPrices);
+
+  if (error) {
+    console.error("Error creating duration prices:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
 // Update an existing price
 export const updatePrice = async (
   id: string,
@@ -352,6 +437,28 @@ export const updatePrice = async (
 
   if (error) {
     console.error("Error updating price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Update an existing duration price
+export const updateDurationPrice = async (
+  id: string,
+  durationPrice: Partial<
+    Omit<DurationPriceData, "id" | "created_at" | "updated_at">
+  >
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("duration_prices")
+    .update(durationPrice)
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating duration price:", error);
     return { success: false, error: error.message };
   }
 
@@ -372,6 +479,108 @@ export const deletePrice = async (
   }
 
   return { success: true };
+};
+
+// Delete a duration price
+export const deleteDurationPrice = async (
+  id: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("duration_prices")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting duration price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Delete all duration prices for a specific price
+export const deleteDurationPricesForPrice = async (
+  priceId: string
+): Promise<{ success: boolean; error?: string }> => {
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("duration_prices")
+    .delete()
+    .eq("price_id", priceId);
+
+  if (error) {
+    console.error("Error deleting duration prices for price:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true };
+};
+
+// Calculate price based on duration
+export const calculatePriceByDuration = async (
+  days: number,
+  priceId: string
+): Promise<{ price: number; error?: string }> => {
+  const supabase = await createClient();
+
+  // Get all duration prices for this price
+  const { data, error } = await supabase
+    .from("duration_prices")
+    .select("*")
+    .eq("price_id", priceId)
+    .order("duration_days", { ascending: true });
+
+  if (error) {
+    console.error("Error fetching duration prices:", error);
+    return { price: 0, error: error.message };
+  }
+
+  if (!data || data.length === 0) {
+    // Fallback to the old pricing model if no duration prices are found
+    const { data: priceData, error: priceError } = await supabase
+      .from("prices")
+      .select("*")
+      .eq("id", priceId)
+      .single();
+
+    if (priceError) {
+      console.error("Error fetching price data:", priceError);
+      return { price: 0, error: priceError.message };
+    }
+
+    // Calculate price using the old model
+    let totalPrice = priceData.base_price;
+    if (days > priceData.base_duration_days) {
+      const additionalDays = days - priceData.base_duration_days;
+      totalPrice += additionalDays * priceData.additional_day_price;
+    }
+
+    return { price: totalPrice };
+  }
+
+  // Find the price for the exact duration
+  const exactMatch = data.find((dp) => dp.duration_days === days);
+  if (exactMatch) {
+    return { price: exactMatch.price };
+  }
+
+  // If no exact match, find the price for the closest higher duration
+  const higherDuration = data
+    .filter((dp) => dp.duration_days > days)
+    .sort((a, b) => a.duration_days - b.duration_days)[0];
+
+  if (higherDuration) {
+    return { price: higherDuration.price };
+  }
+
+  // If no higher duration, use the highest available duration
+  const highestDuration = data.sort(
+    (a, b) => b.duration_days - a.duration_days
+  )[0];
+  return { price: highestDuration.price };
 };
 
 // Fetch all options data for admin
@@ -1219,14 +1428,20 @@ export const createReservation = async (
     };
   }
 
-  // Calculate base price
-  let totalPrice = priceData.base_price;
+  // Calculate price based on duration
+  const { price: durationPrice, error: durationPriceError } =
+    await calculatePriceByDuration(days, priceData.id);
 
-  // Add price for additional days if applicable
-  if (days > priceData.base_duration_days) {
-    const additionalDays = days - priceData.base_duration_days;
-    totalPrice += additionalDays * priceData.additional_day_price;
+  if (durationPriceError) {
+    console.error("Error calculating duration price:", durationPriceError);
+    return {
+      success: false,
+      error: "Erreur lors du calcul du prix: " + durationPriceError,
+    };
   }
+
+  // Use the duration price as the base price
+  let totalPrice = durationPrice;
 
   // Calculate options price if options are provided
   let optionsPrice = 0;
