@@ -608,6 +608,8 @@ export type ReservationData = {
   status: string;
   number?: string;
   flight_number?: string;
+  departure_flight_number?: string;
+  return_flight_number?: string;
   number_of_people?: number;
   created_at?: string;
   updated_at?: string;

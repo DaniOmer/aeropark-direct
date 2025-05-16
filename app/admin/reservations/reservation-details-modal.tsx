@@ -274,6 +274,22 @@ export default function ReservationDetailsModal({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Numéro de vol aller
+                  </p>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {reservation.departure_flight_number || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    Numéro de vol retour
+                  </p>
+                  <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                    {reservation.return_flight_number || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                     Parking
                   </p>
                   <p className="mt-1 text-sm text-gray-900 dark:text-white">

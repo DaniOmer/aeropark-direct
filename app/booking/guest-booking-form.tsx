@@ -42,7 +42,8 @@ export default function GuestBookingForm({
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
-  const [flightNumber, setFlightNumber] = useState("");
+  const [departureFlightNumber, setDepartureFlightNumber] = useState("");
+  const [returnFlightNumber, setReturnFlightNumber] = useState("");
   const [numberOfPeople, setNumberOfPeople] = useState(1);
 
   // User information states
@@ -146,7 +147,8 @@ export default function GuestBookingForm({
       vehicleModel,
       vehicleColor,
       vehiclePlate,
-      flightNumber,
+      departureFlightNumber,
+      returnFlightNumber,
       selectedOptions,
       totalPrice,
     };
@@ -186,7 +188,8 @@ export default function GuestBookingForm({
             vehicle_model: vehicleModel,
             vehicle_color: vehicleColor,
             vehicle_plate: vehiclePlate,
-            flight_number: flightNumber,
+            departure_flight_number: departureFlightNumber,
+            return_flight_number: returnFlightNumber,
             number_of_people: numberOfPeople,
             parking_lot_id: parkingLot.id,
             options: selectedOptions,
@@ -365,15 +368,30 @@ export default function GuestBookingForm({
               </div>
               <div>
                 <Label
-                  htmlFor="flightNumber"
+                  htmlFor="departureFlightNumber"
                   className="block text-sm font-medium mb-1"
                 >
-                  Numéro de vol
+                  Numéro de vol aller
                 </Label>
                 <Input
-                  id="flightNumber"
-                  value={flightNumber}
-                  onChange={(e) => setFlightNumber(e.target.value)}
+                  id="departureFlightNumber"
+                  value={departureFlightNumber}
+                  onChange={(e) => setDepartureFlightNumber(e.target.value)}
+                  className="w-full"
+                  placeholder="Ex: AF1234"
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="returnFlightNumber"
+                  className="block text-sm font-medium mb-1"
+                >
+                  Numéro de vol retour
+                </Label>
+                <Input
+                  id="returnFlightNumber"
+                  value={returnFlightNumber}
+                  onChange={(e) => setReturnFlightNumber(e.target.value)}
                   className="w-full"
                   placeholder="Ex: AF1234"
                 />

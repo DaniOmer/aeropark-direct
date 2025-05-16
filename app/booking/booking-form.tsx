@@ -47,7 +47,8 @@ export default function BookingForm({
   const [vehicleModel, setVehicleModel] = useState("");
   const [vehicleColor, setVehicleColor] = useState("");
   const [vehiclePlate, setVehiclePlate] = useState("");
-  const [flightNumber, setFlightNumber] = useState("");
+  const [departureFlightNumber, setDepartureFlightNumber] = useState("");
+  const [returnFlightNumber, setReturnFlightNumber] = useState("");
   const [numberOfPeople, setNumberOfPeople] = useState(1);
   const [cgvAccepted, setCgvAccepted] = useState(false);
   const [cguAccepted, setCguAccepted] = useState(false);
@@ -145,7 +146,8 @@ export default function BookingForm({
         vehicle_model: vehicleModel,
         vehicle_color: vehicleColor,
         vehicle_plate: vehiclePlate,
-        flight_number: flightNumber,
+        departure_flight_number: departureFlightNumber,
+        return_flight_number: returnFlightNumber,
         number_of_people: numberOfPeople,
         options: selectedOptions.length > 0 ? selectedOptions : undefined,
         cgv: cgvAccepted,
@@ -329,15 +331,30 @@ export default function BookingForm({
             </div>
             <div>
               <Label
-                htmlFor="flightNumber"
+                htmlFor="departureFlightNumber"
                 className="block text-sm font-medium mb-1"
               >
-                Numéro de vol
+                Numéro de vol aller
               </Label>
               <Input
-                id="flightNumber"
-                value={flightNumber}
-                onChange={(e) => setFlightNumber(e.target.value)}
+                id="departureFlightNumber"
+                value={departureFlightNumber}
+                onChange={(e) => setDepartureFlightNumber(e.target.value)}
+                className="w-full"
+                placeholder="Ex: AF1234"
+              />
+            </div>
+            <div>
+              <Label
+                htmlFor="returnFlightNumber"
+                className="block text-sm font-medium mb-1"
+              >
+                Numéro de vol retour
+              </Label>
+              <Input
+                id="returnFlightNumber"
+                value={returnFlightNumber}
+                onChange={(e) => setReturnFlightNumber(e.target.value)}
                 className="w-full"
                 placeholder="Ex: AF1234"
               />

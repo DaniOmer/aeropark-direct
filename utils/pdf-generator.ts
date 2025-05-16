@@ -153,10 +153,16 @@ export const generateReservationPDF = async (
   currentY += 10;
 
   // Heures de départ et convocation - Split into two lines to prevent truncation
-  const flightNumber = reservation.flight_number
-    ? reservation.flight_number
+  const departureFlightNumber = reservation.departure_flight_number
+    ? reservation.departure_flight_number
     : "";
-  doc.text(`Numero de vol : ${flightNumber}`, margin, currentY);
+  const returnFlightNumber = reservation.return_flight_number
+    ? reservation.return_flight_number
+    : "";
+  doc.text(`Numero de vol aller : ${departureFlightNumber}`, margin, currentY);
+
+  currentY += 5;
+  doc.text(`Numero de vol retour : ${returnFlightNumber}`, margin, currentY);
 
   currentY += 5;
   doc.text(`H. du départ de l'avion : `, margin, currentY);
