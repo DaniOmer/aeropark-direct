@@ -1360,6 +1360,8 @@ export type ReservationWithOptions = {
   vehicle_model: string;
   vehicle_color: string;
   vehicle_plate: string;
+  departure_flight_number?: string;
+  return_flight_number?: string;
   number_of_people?: number;
   cgv: boolean;
   cgu: boolean;

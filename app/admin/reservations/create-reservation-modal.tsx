@@ -13,7 +13,9 @@ import {
   OptionData,
   ReservationWithOptions,
   getAllOptionsData,
+  calculatePriceByDuration,
 } from "@/app/actions";
+import { createClient } from "@/utils/supabase/client";
 import { format } from "date-fns";
 
 type CreateReservationModalProps = {
@@ -42,6 +44,12 @@ export default function CreateReservationModal({
     { option_id: string; quantity: number }[]
   >([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
+  const [basePrice, setBasePrice] = useState<number>(0);
+  const [optionsPrice, setOptionsPrice] = useState<number>(0);
+  const [peopleAdditionalFee, setPeopleAdditionalFee] = useState<number>(0);
+  const [days, setDays] = useState<number>(0);
+  const [isCalculatingPrice, setIsCalculatingPrice] = useState(false);
 
   // État pour gérer le type d'utilisateur (existant ou nouveau)
   const [userType, setUserType] = useState<"existing" | "new">("existing");
@@ -64,6 +72,9 @@ export default function CreateReservationModal({
     vehicle_model: "",
     vehicle_color: "",
     vehicle_plate: "",
+    departure_flight_number: "",
+    return_flight_number: "",
+    number_of_people: 1,
     options: [],
     cgv: false,
     cgu: false,
@@ -92,6 +103,9 @@ export default function CreateReservationModal({
         vehicle_model: "",
         vehicle_color: "",
         vehicle_plate: "",
+        departure_flight_number: "",
+        return_flight_number: "",
+        number_of_people: 1,
         options: [],
         cgv: false,
         cgu: false,
@@ -173,6 +187,99 @@ export default function CreateReservationModal({
       });
     }
   }, [endDate, endTime]);
+
+  // Calculer le prix quand les dates, les options ou le nombre de personnes changent
+  useEffect(() => {
+    const calculatePrice = async () => {
+      if (!startDate || !endDate || !formData.parking_lot_id) {
+        setCalculatedPrice(null);
+        return;
+      }
+
+      setIsCalculatingPrice(true);
+
+      try {
+        // Calculer le nombre de jours
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+        setDays(calculatedDays);
+
+        // Récupérer le prix actif pour ce parking
+        const supabase = await createClient();
+        const { data: priceData, error: priceError } = await supabase
+          .from("prices")
+          .select("*")
+          .eq("parking_lot_id", formData.parking_lot_id)
+          .eq("is_active", true)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .single();
+
+        if (priceError || !priceData) {
+          console.error("Erreur lors de la récupération du prix:", priceError);
+          setCalculatedPrice(null);
+          return;
+        }
+
+        // Obtenir le prix pour la durée
+        const { price: durationPrice, error: durationPriceError } =
+          await calculatePriceByDuration(
+            calculatedDays,
+            priceData.id // Utiliser l'ID du prix, pas l'ID du parking
+          );
+
+        if (durationPriceError) {
+          console.error("Erreur lors du calcul du prix:", durationPriceError);
+          setCalculatedPrice(null);
+          return;
+        }
+
+        setBasePrice(durationPrice || 0);
+
+        // Calculer le prix des options
+        const calculatedOptionsPrice = selectedOptions.reduce((total, opt) => {
+          const option = options.find((o) => o.id === opt.option_id);
+          return total + (option ? option.price * opt.quantity : 0);
+        }, 0);
+        setOptionsPrice(calculatedOptionsPrice);
+
+        // Calculer le supplément pour le nombre de personnes
+        // Note: Nous utilisons des valeurs par défaut car nous n'avons pas accès aux données de prix
+        const peopleThreshold = 4; // Valeur par défaut
+        const additionalPeopleFee = 8.0; // Valeur par défaut
+        let calculatedPeopleAdditionalFee = 0;
+        const numberOfPeople = formData.number_of_people || 1;
+        if (numberOfPeople > peopleThreshold) {
+          calculatedPeopleAdditionalFee = additionalPeopleFee;
+        }
+        setPeopleAdditionalFee(calculatedPeopleAdditionalFee);
+
+        // Calculer le prix total
+        const total =
+          durationPrice +
+          calculatedOptionsPrice +
+          calculatedPeopleAdditionalFee;
+        setCalculatedPrice(total);
+      } catch (error) {
+        console.error("Erreur lors du calcul du prix:", error);
+        setCalculatedPrice(null);
+      } finally {
+        setIsCalculatingPrice(false);
+      }
+    };
+
+    calculatePrice();
+  }, [
+    startDate,
+    endDate,
+    formData.parking_lot_id,
+    formData.number_of_people,
+    selectedOptions,
+    options,
+    parkingLots,
+  ]);
 
   // Extraire la date et l'heure quand le modal est ouvert
   useEffect(() => {
@@ -689,6 +796,59 @@ export default function CreateReservationModal({
                   required
                 />
               </div>
+              <div>
+                <Label
+                  htmlFor="departure_flight_number"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Numéro de vol aller
+                </Label>
+                <Input
+                  id="departure_flight_number"
+                  name="departure_flight_number"
+                  value={formData.departure_flight_number}
+                  onChange={handleChange}
+                  placeholder="Ex: AF1234"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="return_flight_number"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Numéro de vol retour
+                </Label>
+                <Input
+                  id="return_flight_number"
+                  name="return_flight_number"
+                  value={formData.return_flight_number}
+                  onChange={handleChange}
+                  placeholder="Ex: AF1234"
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <Label
+                  htmlFor="number_of_people"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
+                  Nombre de personnes
+                </Label>
+                <select
+                  id="number_of_people"
+                  name="number_of_people"
+                  value={formData.number_of_people}
+                  onChange={handleChange}
+                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                >
+                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                    <option key={num} value={num}>
+                      {num} {num === 1 ? "personne" : "personnes"}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Options */}
@@ -829,8 +989,63 @@ export default function CreateReservationModal({
               </div>
             )}
 
+            {/* Récapitulatif du prix */}
+            {calculatedPrice !== null && (
+              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+                <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">
+                  Récapitulatif du prix
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Durée:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-medium">
+                      {days} jour{days > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700 dark:text-gray-300">
+                      Prix de base:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-medium">
+                      {basePrice.toFixed(2)} €
+                    </span>
+                  </div>
+                  {optionsPrice > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Options:
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-medium">
+                        {optionsPrice.toFixed(2)} €
+                      </span>
+                    </div>
+                  )}
+                  {peopleAdditionalFee > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-700 dark:text-gray-300">
+                        Supplément personnes:
+                      </span>
+                      <span className="text-gray-900 dark:text-white font-medium">
+                        {peopleAdditionalFee.toFixed(2)} €
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between pt-2 mt-2 border-t border-gray-200 dark:border-gray-600">
+                    <span className="text-gray-900 dark:text-white font-bold">
+                      Total:
+                    </span>
+                    <span className="text-gray-900 dark:text-white font-bold">
+                      {calculatedPrice.toFixed(2)} €
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Terms and Conditions */}
-            <div className="space-y-4 mt-6">
+            {/* <div className="space-y-4 mt-6">
               <div className="flex items-start space-x-2">
                 <Checkbox
                   id="cgv"
@@ -863,7 +1078,7 @@ export default function CreateReservationModal({
                   J'accepte les conditions générales d'utilisation
                 </Label>
               </div>
-            </div>
+            </div> */}
 
             <div className="flex justify-end space-x-3 mt-6">
               <Button
