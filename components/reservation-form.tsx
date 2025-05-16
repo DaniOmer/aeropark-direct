@@ -17,13 +17,13 @@ export default function ReservationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Générer les options d'heures valides (de 3:30 à 00:30 par dizaine de minutes)
+  // Générer les options d'heures valides (de 3:30 à 00:30 par intervalles de 5 minutes)
   const generateTimeOptions = () => {
     const options = [];
 
     // Heures de 3 à 23
     for (let hour = 3; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 10) {
+      for (let minute = 0; minute < 60; minute += 5) {
         // Sauter 3:00, 3:10, 3:20 car on commence à 3:30
         if (hour === 3 && minute < 30) continue;
 
@@ -36,8 +36,8 @@ export default function ReservationForm() {
       }
     }
 
-    // Ajouter 00:00, 00:10, 00:20, 00:30
-    for (let minute = 0; minute <= 30; minute += 10) {
+    // Ajouter 00:00, 00:05, 00:10, 00:15, 00:20, 00:25, 00:30
+    for (let minute = 0; minute <= 30; minute += 5) {
       const timeValue = `00:${minute.toString().padStart(2, "0")}`;
       const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
 
