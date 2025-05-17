@@ -246,13 +246,13 @@ export default function CreateReservationModal({
         setOptionsPrice(calculatedOptionsPrice);
 
         // Calculer le supplément pour le nombre de personnes
-        // Note: Nous utilisons des valeurs par défaut car nous n'avons pas accès aux données de prix
         const peopleThreshold = 4; // Valeur par défaut
-        const additionalPeopleFee = 8.0; // Valeur par défaut
+        const additionalPeopleFee = priceData.additional_people_fee || 8.0; // Valeur par défaut pour 1 jours supplémentaire
         let calculatedPeopleAdditionalFee = 0;
         const numberOfPeople = formData.number_of_people || 1;
         if (numberOfPeople > peopleThreshold) {
-          calculatedPeopleAdditionalFee = additionalPeopleFee;
+          calculatedPeopleAdditionalFee =
+            additionalPeopleFee * (numberOfPeople - peopleThreshold);
         }
         setPeopleAdditionalFee(calculatedPeopleAdditionalFee);
 
@@ -842,7 +842,7 @@ export default function CreateReservationModal({
                   onChange={handleChange}
                   className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                 >
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                  {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                     <option key={num} value={num}>
                       {num} {num === 1 ? "personne" : "personnes"}
                     </option>
@@ -1028,7 +1028,7 @@ export default function CreateReservationModal({
                         Supplément personnes:
                       </span>
                       <span className="text-gray-900 dark:text-white font-medium">
-                        {peopleAdditionalFee.toFixed(2)} €
+                        {peopleAdditionalFee.toFixed()} €
                       </span>
                     </div>
                   )}

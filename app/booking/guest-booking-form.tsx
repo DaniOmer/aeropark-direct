@@ -105,7 +105,9 @@ export default function GuestBookingForm({
   // Calculate additional fee for number of people
   let peopleAdditionalFee = 0;
   if (numberOfPeople > (priceData.people_threshold || 4)) {
-    peopleAdditionalFee = priceData.additional_people_fee || 8.0;
+    peopleAdditionalFee =
+      (priceData.additional_people_fee || 8.0) *
+      (numberOfPeople - (priceData.people_threshold || 4));
   }
 
   // Total price
@@ -437,7 +439,7 @@ export default function GuestBookingForm({
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   required
                 >
-                  {[1, 2, 3, 4, 5, 6].map((num) => (
+                  {[1, 2, 3, 4, 5, 6, 7].map((num) => (
                     <option key={num} value={num}>
                       {num} {num === 1 ? "personne" : "personnes"}
                     </option>
@@ -445,8 +447,10 @@ export default function GuestBookingForm({
                 </select>
                 {numberOfPeople > (priceData.people_threshold || 4) && (
                   <p className="text-xs text-amber-600 mt-1">
-                    Supplément de {priceData.additional_people_fee || 8}€ pour{" "}
-                    {numberOfPeople} personnes
+                    Supplément de{" "}
+                    {(priceData.additional_people_fee || 8) *
+                      (numberOfPeople - (priceData.people_threshold || 4))}
+                    € pour {numberOfPeople} personnes
                   </p>
                 )}
               </div>
