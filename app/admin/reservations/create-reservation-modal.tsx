@@ -199,11 +199,29 @@ export default function CreateReservationModal({
       setIsCalculatingPrice(true);
 
       try {
-        // Calculer le nombre de jours
+        // Calculer le nombre de jours basé sur les jours calendaires
         const start = new Date(startDate);
         const end = new Date(endDate);
-        const diffTime = Math.abs(end.getTime() - start.getTime());
-        const calculatedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+
+        // Réinitialiser les heures à minuit pour compter les jours calendaires complets
+        const startDay = new Date(
+          start.getFullYear(),
+          start.getMonth(),
+          start.getDate()
+        );
+        const endDay = new Date(
+          end.getFullYear(),
+          end.getMonth(),
+          end.getDate()
+        );
+
+        // Calculer la différence en jours
+        const millisecondsPerDay = 1000 * 60 * 60 * 24;
+        const diffTime = endDay.getTime() - startDay.getTime();
+
+        // Ajouter 1 car on compte à la fois le jour de début et le jour de fin
+        const calculatedDays =
+          Math.floor(diffTime / millisecondsPerDay) + 1 || 1;
         setDays(calculatedDays);
 
         // Récupérer le prix actif pour ce parking

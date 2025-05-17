@@ -8,18 +8,27 @@ import { Checkbox } from "./ui/checkbox";
 import type { UIPricingPlan } from "@/app/tarifs/types";
 import type { OptionData } from "@/app/actions";
 
-// Function to calculate the number of days between two dates
+// Function to calculate the number of days between two dates based on calendar days
 const calculateDays = (startDate: string, endDate: string): number => {
   if (!startDate || !endDate) return 0;
 
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Calculate the time difference in milliseconds
-  const timeDiff = end.getTime() - start.getTime();
+  // Reset hours to midnight to count full calendar days
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-  // Convert to days and round up (partial days count as full days)
-  return Math.ceil(timeDiff / (1000 * 3600 * 24));
+  // Calculate the difference in days
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+  const diffTime = endDay.getTime() - startDay.getTime();
+
+  // Add 1 because we count both the start and end days
+  return Math.floor(diffTime / millisecondsPerDay) + 1;
 };
 
 // Function to calculate the price based on the pricing plan and number of days

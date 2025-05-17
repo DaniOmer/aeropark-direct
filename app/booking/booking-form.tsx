@@ -9,13 +9,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { createReservation } from "@/app/actions";
 import { OptionData, ParkingLotData, PriceData, UserData } from "@/app/actions";
 
-// Calculate the number of days between two dates
+// Calculate the number of days between two dates based on calendar days
 const calculateDays = (startDate: string, endDate: string): number => {
   const start = new Date(startDate);
   const end = new Date(endDate);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays || 1; // Ensure at least 1 day
+
+  // Reset hours to midnight to count full calendar days
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  // Calculate the difference in days
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+  const diffTime = endDay.getTime() - startDay.getTime();
+
+  // Add 1 because we count both the start and end days
+  return Math.floor(diffTime / millisecondsPerDay) + 1 || 1; // Ensure at least 1 day
 };
 
 type BookingFormProps = {

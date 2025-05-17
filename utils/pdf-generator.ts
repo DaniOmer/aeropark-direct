@@ -128,11 +128,25 @@ export const generateReservationPDF = async (
   const formattedStartDate = formatDate(reservation.start_date || "");
   doc.text(`Départ : ${formattedStartDate}`, margin, currentY);
 
-  // Calcul du nombre de jours
+  // Calcul du nombre de jours basé sur les jours calendaires
   const start = new Date(reservation.start_date || "");
   const end = new Date(reservation.end_date || "");
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  // Réinitialiser les heures à minuit pour compter les jours calendaires complets
+  const startDay = new Date(
+    start.getFullYear(),
+    start.getMonth(),
+    start.getDate()
+  );
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+  // Calculer la différence en jours
+  const millisecondsPerDay = 1000 * 60 * 60 * 24;
+  const diffTime = endDay.getTime() - startDay.getTime();
+
+  // Ajouter 1 car on compte à la fois le jour de début et le jour de fin
+  const diffDays = Math.floor(diffTime / millisecondsPerDay) + 1;
+
   doc.text(`Nb de jours : ${diffDays}`, margin + 60, currentY);
 
   // Mode de paiement
