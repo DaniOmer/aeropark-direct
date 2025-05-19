@@ -616,7 +616,7 @@ export default function ReservationsClientPage({
                     className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      {formatDate(reservation.created_at || "")}
+                      {formatDate(reservation.created_at || "", true)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {reservation.number || "—"}

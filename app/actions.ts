@@ -820,6 +820,8 @@ export type ReservationData = {
   departure_flight_number?: string;
   return_flight_number?: string;
   number_of_people?: number;
+  additional_people_fee?: number;
+  late_fee?: number;
   created_at?: string;
   updated_at?: string;
 };
@@ -1514,6 +1516,7 @@ export const createReservation = async (
       {
         ...reservationDataWithoutOptions,
         total_price: totalPrice,
+        additional_people_fee: priceData.additional_people_fee,
         status: "pending", // Set status to pending until payment is confirmed
       },
     ])

@@ -10,7 +10,10 @@ import { fr } from "date-fns/locale";
 import { generateReservationPDF } from "@/utils/pdf-generator";
 
 // Helper function to format dates
-export const formatDate = (dateString: string) => {
+export const formatDate = (
+  dateString: string,
+  isCreatedAt: boolean = false
+) => {
   if (!dateString) return "";
 
   // Parse the date parts manually to avoid timezone issues
@@ -28,6 +31,11 @@ export const formatDate = (dateString: string) => {
     const [hoursStr, minutesStr] = timeString.split(":");
     hours = parseInt(hoursStr, 10);
     minutes = parseInt(minutesStr, 10);
+
+    // Add 2 hours for created_at timestamps to correct UTC to local time
+    if (isCreatedAt) {
+      hours += 2;
+    }
   }
   // Handle simple format without T (2025-05-14 05:00:00)
   else if (dateString.includes("-") && dateString.includes(":")) {
@@ -37,10 +45,19 @@ export const formatDate = (dateString: string) => {
     const [hoursStr, minutesStr] = timePart.split(":");
     hours = parseInt(hoursStr, 10);
     minutes = parseInt(minutesStr, 10);
+
+    // Add 2 hours for created_at timestamps
+    if (isCreatedAt) {
+      hours += 2;
+    }
   }
   // Fallback to standard Date parsing if format is not recognized
   else {
     const date = new Date(dateString);
+    if (isCreatedAt) {
+      // Add 2 hours for created_at timestamps
+      date.setHours(date.getHours() + 2);
+    }
     return format(date, "dd MMMM yyyy à HH:mm", { locale: fr });
   }
 
@@ -317,7 +334,7 @@ export default function ReservationDetailsModal({
                     Date de création
                   </p>
                   <p className="mt-1 text-sm text-gray-900 dark:text-white">
-                    {formatDate(reservation.created_at || "")}
+                    {formatDate(reservation.created_at || "", true)}
                   </p>
                 </div>
                 <div>
@@ -514,7 +531,10 @@ export default function ReservationDetailsModal({
                   Prix de base
                 </span>
                 <span className="text-base text-gray-900 dark:text-white">
-                  {reservation.total_price - optionsTotal} €
+                  {reservation.total_price -
+                    optionsTotal -
+                    Number(reservation.additional_people_fee)}
+                  €
                 </span>
               </div>
               <div className="flex justify-between mt-2">
@@ -532,7 +552,7 @@ export default function ReservationDetailsModal({
                       Supplément personnes
                     </span>
                     <span className="text-base text-gray-900 dark:text-white">
-                      8 €
+                      {reservation.additional_people_fee} €
                     </span>
                   </div>
                 )}

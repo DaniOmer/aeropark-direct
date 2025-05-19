@@ -109,7 +109,7 @@ export const generateReservationPDF = async (
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   doc.text(
-    `Date de réservation : ${formatDate(reservation.created_at || reservation.start_date || "")}`,
+    `Date de réservation : ${formatDate(reservation.created_at || reservation.start_date || "", reservation.created_at ? true : false)}`,
     margin,
     currentY
   );
