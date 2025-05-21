@@ -306,15 +306,15 @@ export function generateAdminNotificationEmail(
       
       <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-          <span style="font-size: 16px; font-weight: 500;">Prix de base</span>
+          <span style="font-size: 16px; font-weight: 500;">Prix de base : </span>
           <span style="font-size: 16px;">${reservation.total_price - optionsTotal} €</span>
         </div>
         <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-          <span style="font-size: 16px; font-weight: 500;">Options</span>
+          <span style="font-size: 16px; font-weight: 500;">Options : </span>
           <span style="font-size: 16px;">${optionsTotal} €</span>
         </div>
         <div style="display: flex; justify-content: space-between; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-          <span style="font-size: 18px; font-weight: 700;">Total</span>
+          <span style="font-size: 18px; font-weight: 700;">Total : </span>
           <span style="font-size: 18px; font-weight: 700;">${reservation.total_price} €</span>
         </div>
       </div>

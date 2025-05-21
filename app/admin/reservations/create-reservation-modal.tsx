@@ -26,6 +26,10 @@ type CreateReservationModalProps = {
   users: UserData[];
 };
 
+// export type ReservationFormData = ReservationWithOptions & {
+//   payment_method: string;
+// };
+
 export type ReservationFormData = ReservationWithOptions;
 
 export default function CreateReservationModal({
@@ -78,6 +82,7 @@ export default function CreateReservationModal({
     options: [],
     cgv: false,
     cgu: false,
+    // payment_method: "cash",
   });
 
   // Fetch options when modal opens
@@ -109,6 +114,7 @@ export default function CreateReservationModal({
         options: [],
         cgv: false,
         cgu: false,
+        // payment_method: "cash",
       });
       setSelectedOptions([]);
 
@@ -1061,6 +1067,26 @@ export default function CreateReservationModal({
                 </div>
               </div>
             )}
+
+            {/* Payment method */}
+            {/* <div>
+              <Label
+                htmlFor="payment_method"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
+                Mode de paiement
+              </Label>
+              <select
+                id="payment_method"
+                name="payment_method"
+                value={formData.payment_method}
+                onChange={handleChange}
+                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              >
+                <option value="cash">Espèces</option>
+                <option value="card">Carte bancaire</option>
+              </select>
+            </div> */}
 
             {/* Terms and Conditions */}
             {/* <div className="space-y-4 mt-6">

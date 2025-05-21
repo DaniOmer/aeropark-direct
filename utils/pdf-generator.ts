@@ -161,8 +161,31 @@ export const generateReservationPDF = async (
   doc.rect(pageWidth - margin - 4, checkboxY, 4, 4); // CB
   doc.text("CB", pageWidth - margin - 13, currentY);
 
-  // Cercle autour du mode de paiement (par défaut CB)
-  doc.circle(pageWidth - margin - 2, currentY - 1, 5);
+  // Vérifier si la réservation a des paiements et si au moins un est en statut "succeeded"
+  const isPaid =
+    reservation.payments &&
+    reservation.payments.some((payment) => payment.status === "succeeded");
+
+  // Cocher la case CB si la réservation est payée
+  if (isPaid) {
+    doc.setDrawColor(0, 128, 0); // Vert pour la case cochée
+    doc.rect(pageWidth - margin - 4, checkboxY, 4, 4, "F"); // Remplir la case CB
+    doc.setDrawColor(0); // Réinitialiser la couleur
+  }
+
+  // Ajout du statut de paiement
+  currentY += 5;
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+
+  if (isPaid) {
+    doc.setTextColor(0, 128, 0); // Vert pour indiquer payé
+    doc.text("Réservation payée", pageWidth - margin - 90, currentY);
+  } else {
+    doc.setTextColor(255, 0, 0); // Rouge pour indiquer non payé
+    doc.text("À payer sur place", pageWidth - margin - 90, currentY);
+  }
+  doc.setTextColor(0); // Réinitialiser la couleur
 
   currentY += 10;
 
@@ -371,7 +394,7 @@ export const generateReservationPDF = async (
 
   // --- Navette ---
 
-  currentY += 10;
+  currentY += 5;
   currentY = checkAndAddNewPage(doc, currentY, margin);
   doc.setFontSize(8);
   doc.setFont("helvetica", "italic");
@@ -402,7 +425,7 @@ export const generateReservationPDF = async (
   // }
 
   // --- Signatures ---
-  currentY = pageHeight - 30; // Position signatures near the bottom
+  currentY = pageHeight - 25; // Position signatures near the bottom
   currentY = checkAndAddNewPage(doc, currentY, margin);
 
   doc.setFontSize(10);
