@@ -7,6 +7,7 @@ import Header from "@/components/header";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { WhatsAppButton } from "@/components/whatsapp-button";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -30,7 +31,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={geistSans.className} suppressHydrationWarning>
+    <html lang="fr" className={geistSans.className} suppressHydrationWarning>
       <body className="bg-background text-foreground">
         <ThemeProvider
           attribute="class"
@@ -186,6 +187,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
       </body>
+      <GoogleAnalytics gaId="AW-17111679485" />
     </html>
   );
 }
