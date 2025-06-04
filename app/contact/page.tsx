@@ -328,7 +328,7 @@ export default function ContactPage() {
                   <p className="text-sm text-muted-foreground">
                     Vous pouvez réserver directement sur notre site web en
                     utilisant notre formulaire de réservation, ou par téléphone
-                    au 06 24 72 48 11.
+                    au 0783829260.
                   </p>
                 </div>
                 <div>
@@ -368,7 +368,7 @@ export default function ContactPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:0624724811"
+              href="tel:0783829260"
               className="inline-flex items-center justify-center rounded-md bg-white text-primary px-6 py-3 text-base font-medium shadow-sm hover:bg-gray-100 transition-colors"
             >
               <svg
