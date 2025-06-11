@@ -78,7 +78,7 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Téléphone</h3>
-                  <p className="text-muted-foreground">06 24 72 48 11</p>
+                  <p className="text-muted-foreground">07 83 82 92 60</p>
                   <p className="text-muted-foreground mt-2">
                     <span className="font-medium">Disponibilité :</span> 24h/24,
                     7j/7
