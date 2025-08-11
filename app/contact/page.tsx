@@ -51,7 +51,7 @@ export default function ContactPage() {
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Adresse</h3>
                   <p className="text-muted-foreground">3 avenue germaine</p>
-                  <p className="text-muted-foreground">91170 Vitry-Châtillon</p>
+                  <p className="text-muted-foreground">91170 Viry-Châtillon</p>
                   <p className="text-muted-foreground mt-2">
                     <span className="font-medium">À proximité de :</span>{" "}
                     Aéroport d'Orly (10 minutes)
@@ -163,7 +163,7 @@ export default function ContactPage() {
                       Carte interactive
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      3 avenue germaine, 91170 Vitry-Châtillon
+                      3 avenue germaine, 91170 Viry-Châtillon
                     </p>
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export default function ContactPage() {
                   <h3 className="font-semibold">Accès</h3>
                   <p className="text-sm text-muted-foreground">
                     <span className="font-medium">En voiture :</span> Depuis
-                    l'A6, prendre la sortie 6 vers Vitry-Châtillon, puis suivre
+                    l'A6, prendre la sortie 6 vers Viry-Châtillon, puis suivre
                     les panneaux "ParkAero Direct".
                   </p>
                   <p className="text-sm text-muted-foreground">

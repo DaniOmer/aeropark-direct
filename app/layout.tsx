@@ -114,7 +114,7 @@ export default function RootLayout({
                           <h3 className="text-lg font-bold mb-4">Contact</h3>
                           <ul className="space-y-2 text-sm text-muted-foreground">
                             <li>3 avenue germaine</li>
-                            <li>91170 Vitry-Châtillon</li>
+                            <li>91170 Viry-Châtillon</li>
                             <li>Tél: 07 83 82 92 60</li>
                             <li>Email: aeroparkdirect@hotmail.com</li>
                           </ul>
