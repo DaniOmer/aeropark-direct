@@ -604,12 +604,12 @@ export default function GuestBookingForm({
       ) : (
         <div className="space-y-6">
           <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-            <h2 className="text-xl font-semibold mb-6">
+            {/* <h2 className="text-xl font-semibold mb-6">
               Finaliser votre réservation
-            </h2>
+            </h2> */}
 
             <div className="flex flex-col space-y-6">
-              <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
+              {/* <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
                 <h3 className="text-lg font-medium mb-4">
                   Vous avez déjà un compte ?
                 </h3>
@@ -623,9 +623,9 @@ export default function GuestBookingForm({
                   Connectez-vous pour accéder à votre historique de réservations
                   et bénéficier de nos offres.
                 </p>
-              </div>
+              </div> */}
 
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
                 </div>
@@ -634,11 +634,11 @@ export default function GuestBookingForm({
                     OU
                   </span>
                 </div>
-              </div>
+              </div> */}
 
               <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg">
                 <h3 className="text-lg font-medium mb-4">
-                  Continuer sans compte
+                  Mes informations personnelles
                 </h3>
                 <form onSubmit={handleGuestSubmit} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

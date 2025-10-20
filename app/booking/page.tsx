@@ -95,7 +95,7 @@ async function BookingPageContent(searchParams: {
         Finaliser votre réservation
       </h1>
 
-      {userData ? (
+      {/* {userData ? (
         // User is logged in, show regular booking form
         <BookingForm
           startDate={start as string}
@@ -116,7 +116,16 @@ async function BookingPageContent(searchParams: {
           options={options || []}
           priceData={priceData}
         />
-      )}
+      )} */}
+
+      <GuestBookingForm
+        startDate={start as string}
+        endDate={end as string}
+        vehicleType={vehicle as string}
+        parkingLot={parkingLot}
+        options={options || []}
+        priceData={priceData}
+      />
     </div>
   );
 }
