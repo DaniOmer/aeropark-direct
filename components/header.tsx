@@ -79,12 +79,12 @@ export default function Header() {
               </div>
             ) : (
               <div className="flex gap-2">
-                <Button asChild size="sm" variant={"outline"}>
+                <Button asChild size="sm" variant={"default"}>
                   <Link href="/sign-in">Se connecter</Link>
                 </Button>
-                <Button asChild size="sm" variant={"default"}>
+                {/* <Button asChild size="sm" variant={"default"}>
                   <Link href="/sign-up">S&apos;inscrire</Link>
-                </Button>
+                </Button> */}
                 <ThemeSwitcher />
               </div>
             )}
@@ -170,11 +170,11 @@ export default function Header() {
                     setIsMenuOpen(false);
                   }}
                   size="sm"
-                  variant={"outline"}
+                  variant={"default"}
                 >
                   Se connecter
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     router.push("/sign-up");
                     setIsMenuOpen(false);
@@ -183,7 +183,7 @@ export default function Header() {
                   variant={"default"}
                 >
                   S&apos;inscrire
-                </Button>
+                </Button> */}
                 <ThemeSwitcher />
               </div>
             )}
