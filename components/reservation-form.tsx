@@ -23,8 +23,8 @@ export default function ReservationForm() {
 
     // Heures de 3 à 23
     for (let hour = 3; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 5) {
-        // Sauter 3:00, 3:10, 3:20 car on commence à 3:30
+      for (let minute = 0; minute < 60; minute += 30) {
+        // Sauter 3:00 car on commence à 3:30
         if (hour === 3 && minute < 30) continue;
 
         const formattedHour = hour.toString().padStart(2, "0");
@@ -36,8 +36,8 @@ export default function ReservationForm() {
       }
     }
 
-    // Ajouter 00:00, 00:05, 00:10, 00:15, 00:20, 00:25, 00:30
-    for (let minute = 0; minute <= 30; minute += 5) {
+    // Ajouter 00:00, 00:30
+    for (let minute = 0; minute <= 30; minute += 30) {
       const timeValue = `00:${minute.toString().padStart(2, "0")}`;
       const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
 

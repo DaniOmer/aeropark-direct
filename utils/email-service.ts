@@ -143,11 +143,12 @@ export function generateAdminNotificationEmail(
     minute: "2-digit",
   });
 
-  // Calculate duration
+  // Calculate duration (inclusive: both start and end calendar days count)
   const start = new Date(reservation.start_date);
   const end = new Date(reservation.end_date);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const days = Math.floor((endDay.getTime() - startDay.getTime()) / (1000 * 60 * 60 * 24)) + 1 || 1;
 
   // Calculate options total if available
   let optionsTotal = 0;
@@ -359,11 +360,12 @@ export function generateReservationConfirmationEmail(reservation: any): string {
     minute: "2-digit",
   });
 
-  // Calculate duration
+  // Calculate duration (inclusive: both start and end calendar days count)
   const start = new Date(reservation.start_date);
   const end = new Date(reservation.end_date);
-  const diffTime = Math.abs(end.getTime() - start.getTime());
-  const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const days = Math.floor((endDay.getTime() - startDay.getTime()) / (1000 * 60 * 60 * 24)) + 1 || 1;
 
   // Calculate options total if available
   let optionsTotal = 0;
