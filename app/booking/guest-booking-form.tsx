@@ -336,12 +336,12 @@ export default function GuestBookingForm({
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-yellow-700">
-                    Attention : Pour des raisons d'organisation et de sécurité,
-                    seuls les véhicules de type voiture particulière sont
-                    acceptés (citadines, berlines, SUV compacts). Les véhicules
-                    de type utilitaire, van, camionnette, fourgon, camping-car,
-                    pickup ne pourront pas être pris en charge. Merci pour votre
-                    compréhension.
+                  Attention : Pour des raisons d'organisation et de sécurité,
+                  seuls les véhicules de type voiture particulière
+                  (citadines, berlines, SUV compacts) et les van sont acceptés. Les véhicules de type
+                  utilitaire, camionnette, fourgon et camping-car ne
+                  pourront pas être pris en charge. Merci pour votre
+                  compréhension.
                   </p>
                 </div>
               </div>
