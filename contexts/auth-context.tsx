@@ -113,9 +113,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // S'abonner aux changements d'auth
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (!session?.user) await fetchUser();
-      setUser(session?.user || null);
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        await fetchUser();
+      }
     });
 
     return () => {
