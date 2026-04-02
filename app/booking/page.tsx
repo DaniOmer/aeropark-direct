@@ -90,24 +90,42 @@ async function BookingPageContent(searchParams: {
   }
 
   return (
-    <div className="container mx-auto py-12 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">
-        Finaliser votre réservation
-      </h1>
+    <div className="w-full">
+      {/* Mini hero / header */}
+      <section className="bg-[#0c1821] bg-gradient-to-br from-[#0c1821] via-[#122336] to-[#0e3654] py-14 text-center">
+        <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-300 mb-1">
+          Réservation
+        </p>
+        <h1 className="text-3xl font-bold text-white">
+          Finaliser votre réservation
+        </h1>
+      </section>
 
-      {/* {userData ? (
-        // User is logged in, show regular booking form
-        <BookingForm
-          startDate={start as string}
-          endDate={end as string}
-          vehicleType={vehicle as string}
-          user={userData}
-          parkingLot={parkingLot}
-          options={options || []}
-          priceData={priceData}
-        />
-      ) : (
-        // User is not logged in, show guest booking form
+      {/* Booking form */}
+      <div className="container max-w-screen-xl mx-auto px-6 py-12">
+        {/* {userData ? (
+          // User is logged in, show regular booking form
+          <BookingForm
+            startDate={start as string}
+            endDate={end as string}
+            vehicleType={vehicle as string}
+            user={userData}
+            parkingLot={parkingLot}
+            options={options || []}
+            priceData={priceData}
+          />
+        ) : (
+          // User is not logged in, show guest booking form
+          <GuestBookingForm
+            startDate={start as string}
+            endDate={end as string}
+            vehicleType={vehicle as string}
+            parkingLot={parkingLot}
+            options={options || []}
+            priceData={priceData}
+          />
+        )} */}
+
         <GuestBookingForm
           startDate={start as string}
           endDate={end as string}
@@ -116,16 +134,7 @@ async function BookingPageContent(searchParams: {
           options={options || []}
           priceData={priceData}
         />
-      )} */}
-
-      <GuestBookingForm
-        startDate={start as string}
-        endDate={end as string}
-        vehicleType={vehicle as string}
-        parkingLot={parkingLot}
-        options={options || []}
-        priceData={priceData}
-      />
+      </div>
     </div>
   );
 }

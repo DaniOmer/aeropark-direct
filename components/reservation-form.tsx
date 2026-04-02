@@ -2,48 +2,52 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { checkAvailability } from "@/app/actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { Calendar } from "./ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "./ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function ReservationForm() {
   const router = useRouter();
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [endTime, setEndTime] = useState("");
   const [vehicleType, setVehicleType] = useState("small_car");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
 
-  // Générer les options d'heures valides (de 3:30 à 00:30 par intervalles de 5 minutes)
   const generateTimeOptions = () => {
     const options = [];
-
-    // Heures de 3 à 23
     for (let hour = 3; hour < 24; hour++) {
       for (let minute = 0; minute < 60; minute += 30) {
-        // Sauter 3:00 car on commence à 3:30
         if (hour === 3 && minute < 30) continue;
-
         const formattedHour = hour.toString().padStart(2, "0");
         const formattedMinute = minute.toString().padStart(2, "0");
         const timeValue = `${formattedHour}:${formattedMinute}`;
-        const timeLabel = `${formattedHour}:${formattedMinute}`;
-
-        options.push({ value: timeValue, label: timeLabel });
+        options.push({ value: timeValue, label: timeValue });
       }
     }
-
-    // Ajouter 00:00, 00:30
     for (let minute = 0; minute <= 30; minute += 30) {
       const timeValue = `00:${minute.toString().padStart(2, "0")}`;
-      const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
-
-      options.push({ value: timeValue, label: timeLabel });
+      options.push({ value: timeValue, label: timeValue });
     }
-
     return options;
   };
 
@@ -55,30 +59,32 @@ export default function ReservationForm() {
     setError(null);
 
     try {
-      // Combine date and time
-      const startDateTime = `${startDate}T${startTime}:00`;
-      const endDateTime = `${endDate}T${endTime}:00`;
+      if (!startDate || !endDate || !startTime || !endTime) {
+        setError("Veuillez remplir tous les champs");
+        setIsSubmitting(false);
+        return;
+      }
 
-      // Validate dates
+      const startDateStr = format(startDate, "yyyy-MM-dd");
+      const endDateStr = format(endDate, "yyyy-MM-dd");
+      const startDateTime = `${startDateStr}T${startTime}:00`;
+      const endDateTime = `${endDateStr}T${endTime}:00`;
       const startDateObj = new Date(startDateTime);
       const endDateObj = new Date(endDateTime);
       const now = new Date();
 
-      // Check if start date is in the past
       if (startDateObj < now) {
         setError("La date d'arrivée ne peut pas être dans le passé");
         setIsSubmitting(false);
         return;
       }
 
-      // Check if end date is before start date
       if (endDateObj <= startDateObj) {
         setError("La date de départ doit être postérieure à la date d'arrivée");
         setIsSubmitting(false);
         return;
       }
 
-      // Check availability
       const result = await checkAvailability(
         startDateTime,
         endDateTime,
@@ -86,7 +92,6 @@ export default function ReservationForm() {
       );
 
       if (result.available) {
-        // Redirect to the booking page with query parameters
         router.push(
           `/booking?start=${encodeURIComponent(startDateTime)}&end=${encodeURIComponent(
             endDateTime
@@ -105,206 +110,151 @@ export default function ReservationForm() {
     }
   };
 
+  const triggerClass =
+    "bg-[#f8fafc] dark:bg-white/5 border-[#e2e8f0] dark:border-white/10 rounded-lg h-10 text-sm focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500";
+
+  const dateButtonClass =
+    "w-full bg-[#f8fafc] dark:bg-white/5 border border-[#e2e8f0] dark:border-white/10 rounded-lg px-3 h-10 text-sm flex items-center justify-between hover:bg-[#f1f5f9] dark:hover:bg-white/10 transition-colors";
+
   return (
     <div
       id="reservation"
-      className="w-full max-w-4xl mx-auto bg-card rounded-xl shadow-lg overflow-hidden"
+      className="bg-white dark:bg-[#122336] rounded-2xl p-6 md:p-7 shadow-[0_25px_50px_rgba(0,0,0,0.25)] border border-white/5"
     >
-      <div className="p-8">
-        <h2 className="text-2xl font-bold text-center mb-6">
-          Réservez votre place de parking
-        </h2>
+      <h2 className="text-lg font-bold text-[#0c1821] dark:text-white mb-5">
+        Réservez votre place
+      </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Vehicle Type */}
-            <div className="md:col-span-2">
-              <div className="flex items-center mb-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-2 text-primary"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
-                <Label htmlFor="vehicleType" className="font-medium">
-                  Type de véhicule
-                </Label>
-              </div>
-              <select
-                id="vehicleType"
-                value={vehicleType}
-                onChange={(e) => setVehicleType(e.target.value)}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
-                required
-              >
-                <option value="small_car">Voiture</option>
-                <option value="small_motorcycle">Moto</option>
-              </select>
-            </div>
-            {/* Start Date and Time */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <Label htmlFor="startDate" className="font-medium">
-                    Date début
-                  </Label>
-                </div>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  className="w-full"
-                  required
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+            Véhicule
+          </label>
+          <Select value={vehicleType} onValueChange={setVehicleType}>
+            <SelectTrigger className={triggerClass}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="small_car">Voiture</SelectItem>
+              <SelectItem value="small_motorcycle">Moto</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+              Arrivée
+            </label>
+            <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className={cn(dateButtonClass, !startDate && "text-muted-foreground")}>
+                  <span className="truncate">
+                    {startDate
+                      ? format(startDate, "d MMM yyyy", { locale: fr })
+                      : "jj/mm/aaaa"}
+                  </span>
+                  <CalendarIcon className="h-4 w-4 text-[#94a3b8] shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setStartDateOpen(false);
+                  }}
+                  locale={fr}
+                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
                 />
-              </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+              Heure
+            </label>
+            <Select value={startTime} onValueChange={setStartTime}>
+              <SelectTrigger className={triggerClass}>
+                <SelectValue placeholder="--:--" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((option) => (
+                  <SelectItem key={`start-${option.value}`} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <Label htmlFor="startTime" className="font-medium">
-                    Heure
-                  </Label>
-                </div>
-                <select
-                  id="startTime"
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
-                  required
-                >
-                  <option value="">Sélectionnez une heure</option>
-                  {timeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* End Date and Time */}
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <Label htmlFor="endDate" className="font-medium">
-                    Date fin
-                  </Label>
-                </div>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  min={startDate || new Date().toISOString().split("T")[0]}
-                  className="w-full"
-                  required
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+              Départ
+            </label>
+            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+              <PopoverTrigger asChild>
+                <button type="button" className={cn(dateButtonClass, !endDate && "text-muted-foreground")}>
+                  <span className="truncate">
+                    {endDate
+                      ? format(endDate, "d MMM yyyy", { locale: fr })
+                      : "jj/mm/aaaa"}
+                  </span>
+                  <CalendarIcon className="h-4 w-4 text-[#94a3b8] shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setEndDateOpen(false);
+                  }}
+                  locale={fr}
+                  disabled={(date) =>
+                    date < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))
+                  }
                 />
-              </div>
-
-              <div>
-                <div className="flex items-center mb-2">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-2 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <Label htmlFor="endTime" className="font-medium">
-                    Heure
-                  </Label>
-                </div>
-                <select
-                  id="endTime"
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 h-10 px-3"
-                  required
-                >
-                  <option value="">Sélectionnez une heure</option>
-                  {timeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+              </PopoverContent>
+            </Popover>
           </div>
-
-          {error && (
-            <div className="bg-red-50 text-red-700 p-4 rounded-md">{error}</div>
-          )}
-
-          <div className="flex justify-center pt-4">
-            <Button
-              type="submit"
-              className="bg-primary hover:bg-primary/90 text-white font-medium px-8 py-6 text-lg rounded-md w-full md:w-auto"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? "Vérification..." : "Rechercher"}
-            </Button>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider text-[#94a3b8] mb-1.5">
+              Heure
+            </label>
+            <Select value={endTime} onValueChange={setEndTime}>
+              <SelectTrigger className={triggerClass}>
+                <SelectValue placeholder="--:--" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((option) => (
+                  <SelectItem key={`end-${option.value}`} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </form>
-      </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 p-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-semibold py-3 rounded-xl shadow-[0_4px_14px_rgba(14,165,233,0.35)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSubmitting ? "Vérification..." : "Vérifier la disponibilité"}
+        </button>
+      </form>
     </div>
   );
 }

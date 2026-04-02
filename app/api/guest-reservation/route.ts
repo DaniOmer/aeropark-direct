@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
       departure_flight_number: reservation.departure_flight_number,
       return_flight_number: reservation.return_flight_number,
       number_of_people: reservation.number_of_people,
-      cgu: reservation.cgv,
-      cgv: reservation.cgv,
+      cgu: reservation.cgu ?? false,
+      cgv: reservation.cgv ?? false,
     };
 
     const result = await createReservation(reservationData);
