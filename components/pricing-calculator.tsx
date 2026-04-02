@@ -126,14 +126,14 @@ export default function PricingCalculator({
     { option_id: string; quantity: number }[]
   >([]);
 
-  // Générer les options d'heures valides (de 3:30 à 00:30 par dizaine de minutes)
-  const generateTimeOptions = () => {
+  // Générer les options d'heures valides (de 3:30 à 00:55)
+  const generateTimeOptions = (intervalMinutes: number) => {
     const options = [];
 
     // Heures de 3 à 23
     for (let hour = 3; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
-        // Sauter 3:00 car on commence à 3:30
+      for (let minute = 0; minute < 60; minute += intervalMinutes) {
+        // Sauter avant 3:30 car on commence à 3:30
         if (hour === 3 && minute < 30) continue;
 
         const formattedHour = hour.toString().padStart(2, "0");
@@ -145,8 +145,8 @@ export default function PricingCalculator({
       }
     }
 
-    // Ajouter 00:00, 00:30
-    for (let minute = 0; minute <= 30; minute += 30) {
+    // Ajouter 00:00+
+    for (let minute = 0; minute < 60; minute += intervalMinutes) {
       const timeValue = `00:${minute.toString().padStart(2, "0")}`;
       const timeLabel = `00:${minute.toString().padStart(2, "0")}`;
 
@@ -156,7 +156,8 @@ export default function PricingCalculator({
     return options;
   };
 
-  const timeOptions = generateTimeOptions();
+  const arrivalTimeOptions = generateTimeOptions(5);
+  const departureTimeOptions = generateTimeOptions(30);
 
   // Reset the calculated price when inputs change
   useEffect(() => {
@@ -294,7 +295,7 @@ export default function PricingCalculator({
                 <SelectValue placeholder="Sélectionnez une heure" />
               </SelectTrigger>
               <SelectContent>
-                {timeOptions.map((option) => (
+                {arrivalTimeOptions.map((option) => (
                   <SelectItem key={`calc-start-${option.value}`} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -350,7 +351,7 @@ export default function PricingCalculator({
                 <SelectValue placeholder="Sélectionnez une heure" />
               </SelectTrigger>
               <SelectContent>
-                {timeOptions.map((option) => (
+                {departureTimeOptions.map((option) => (
                   <SelectItem key={`calc-end-${option.value}`} value={option.value}>
                     {option.label}
                   </SelectItem>

@@ -33,10 +33,10 @@ export default function ReservationForm() {
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
 
-  const generateTimeOptions = () => {
+  const generateTimeOptions = (intervalMinutes: number) => {
     const options = [];
     for (let hour = 3; hour < 24; hour++) {
-      for (let minute = 0; minute < 60; minute += 30) {
+      for (let minute = 0; minute < 60; minute += intervalMinutes) {
         if (hour === 3 && minute < 30) continue;
         const formattedHour = hour.toString().padStart(2, "0");
         const formattedMinute = minute.toString().padStart(2, "0");
@@ -44,14 +44,15 @@ export default function ReservationForm() {
         options.push({ value: timeValue, label: timeValue });
       }
     }
-    for (let minute = 0; minute <= 30; minute += 30) {
+    for (let minute = 0; minute < 60; minute += intervalMinutes) {
       const timeValue = `00:${minute.toString().padStart(2, "0")}`;
       options.push({ value: timeValue, label: timeValue });
     }
     return options;
   };
 
-  const timeOptions = generateTimeOptions();
+  const arrivalTimeOptions = generateTimeOptions(5);
+  const departureTimeOptions = generateTimeOptions(30);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,7 +181,7 @@ export default function ReservationForm() {
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent>
-                {timeOptions.map((option) => (
+                {arrivalTimeOptions.map((option) => (
                   <SelectItem key={`start-${option.value}`} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -231,7 +232,7 @@ export default function ReservationForm() {
                 <SelectValue placeholder="--:--" />
               </SelectTrigger>
               <SelectContent>
-                {timeOptions.map((option) => (
+                {departureTimeOptions.map((option) => (
                   <SelectItem key={`end-${option.value}`} value={option.value}>
                     {option.label}
                   </SelectItem>
