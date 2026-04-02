@@ -1402,29 +1402,11 @@ export const createReservation = async (
 }> => {
   const supabase = await createClient();
 
-  // Check capacity first
-  const capacityCheck = await checkCapacity(
-    reservationData.parking_lot_id,
-    reservationData.vehicle_type,
-    reservationData.start_date,
-    reservationData.end_date
-  );
-
-  if (!capacityCheck.available) {
-    return {
-      success: false,
-      error:
-        capacityCheck.message ||
-        "Pas de capacité disponible pour cette réservation",
-    };
-  }
-
   // Calculate the number of days
   const days = calculateDays(
     reservationData.start_date,
     reservationData.end_date
   );
-  console.log("days", reservationData.parking_lot_id);
 
   // Get the active price for this parking lot
   const { data: priceData, error: priceError } = await supabase
@@ -1506,28 +1488,42 @@ export const createReservation = async (
     totalPrice += priceData.additional_people_fee || 8.0;
   }
 
-  // Create a copy of reservationData without the options field
-  const { options, cgu, ...reservationDataWithoutOptions } = reservationData;
+  // Atomic capacity check + insert via database function (prevents race conditions)
+  const { data: rpcResult, error: rpcError } = await supabase.rpc(
+    "reserve_parking_slot",
+    {
+      p_user_id: reservationData.user_id,
+      p_parking_lot_id: reservationData.parking_lot_id,
+      p_start_date: reservationData.start_date,
+      p_end_date: reservationData.end_date,
+      p_vehicle_type: reservationData.vehicle_type,
+      p_vehicle_brand: reservationData.vehicle_brand,
+      p_vehicle_model: reservationData.vehicle_model,
+      p_vehicle_color: reservationData.vehicle_color,
+      p_vehicle_plate: reservationData.vehicle_plate,
+      p_total_price: totalPrice,
+      p_additional_people_fee: priceData.additional_people_fee || 0,
+      p_departure_flight_number:
+        reservationData.departure_flight_number || null,
+      p_return_flight_number: reservationData.return_flight_number || null,
+      p_number_of_people: reservationData.number_of_people || 1,
+      p_cgv: reservationData.cgv || false,
+    }
+  );
 
-  // Insert the reservation without the options field
-  const { data, error } = await supabase
-    .from("reservations")
-    .insert([
-      {
-        ...reservationDataWithoutOptions,
-        total_price: totalPrice,
-        additional_people_fee: priceData.additional_people_fee,
-        status: "pending", // Set status to pending until payment is confirmed
-      },
-    ])
-    .select();
-
-  if (error) {
-    console.error("Error creating reservation:", error);
-    return { success: false, error: error.message };
+  if (rpcError) {
+    console.error("Error creating reservation:", rpcError);
+    return { success: false, error: rpcError.message };
   }
 
-  const reservationId = data[0].id;
+  const result =
+    typeof rpcResult === "string" ? JSON.parse(rpcResult) : rpcResult;
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  const reservationId = result.id;
 
   // Insert options if any
   if (optionsToInsert.length > 0) {
@@ -1543,8 +1539,6 @@ export const createReservation = async (
 
     if (optionsInsertError) {
       console.error("Error inserting reservation options:", optionsInsertError);
-      // We don't return an error here as the reservation was created successfully
-      // In a production app, you might want to handle this more gracefully
     }
   }
 
