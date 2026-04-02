@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { useToastContext } from "@/components/providers/toast-provider";
 import {
   ReservationWithUserData,
@@ -53,6 +59,10 @@ export default function ReservationsClientPage({
     useState<keyof ReservationWithUserData>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>();
+  const [dateFromOpen, setDateFromOpen] = useState(false);
+  const [dateTo, setDateTo] = useState<Date | undefined>();
+  const [dateToOpen, setDateToOpen] = useState(false);
   const [users, setUsers] = useState<UserData[]>([]);
   const [parkingLots, setParkingLots] = useState<ParkingLotData[]>([]);
   const router = useRouter();
@@ -131,10 +141,17 @@ export default function ReservationsClientPage({
     return 0;
   });
 
-  // Filter reservations by status
-  const filteredReservations = statusFilter
-    ? sortedReservations.filter((r) => r.status === statusFilter)
-    : sortedReservations;
+  // Filter reservations by status and date range
+  const filteredReservations = sortedReservations.filter((r) => {
+    if (statusFilter && r.status !== statusFilter) return false;
+    if (dateFrom && new Date(r.start_date) < dateFrom) return false;
+    if (dateTo) {
+      const endOfDay = new Date(dateTo);
+      endOfDay.setHours(23, 59, 59);
+      if (new Date(r.start_date) > endOfDay) return false;
+    }
+    return true;
+  });
 
   // Handle sort change
   const handleSort = (field: keyof ReservationWithUserData) => {
@@ -280,175 +297,159 @@ export default function ReservationsClientPage({
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+    <div className="p-6 md:p-8 space-y-6">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Gestion des réservations
+          <h1 className="text-2xl font-extrabold text-foreground">
+            Réservations
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Gérez les réservations de vos clients
+          <p className="text-sm text-muted-foreground mt-1">
+            {totalReservations} réservation{totalReservations > 1 ? "s" : ""} au total
           </p>
         </div>
 
-        {/* Search input */}
-        <div className="w-full sm:w-auto">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              router.push(
-                `/admin/reservations?search=${encodeURIComponent(search)}`
-              );
-            }}
-            className="flex gap-2"
+        <div className="flex flex-wrap gap-2">
+          <Button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
           >
-            <input
-              type="text"
-              placeholder="Rechercher par numéro ou email"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            />
-            <Button
-              type="submit"
-              onClick={() => {
-                // Force a server refresh when clicking search
-                router.refresh();
-              }}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </Button>
-          </form>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex flex-col sm:flex-row gap-2">
-            {/* Create reservation button */}
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-              Créer une réservation
-            </Button>
-
-            {/* Download PDF button */}
-            <Button
-              onClick={() => {
-                const doc = generateReservationsListPDF(filteredReservations);
-                doc.save("liste-reservations.pdf");
-              }}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              Télécharger PDF
-            </Button>
-          </div>
-
-          {/* Status filter */}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant={statusFilter === null ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter(null)}
-            >
-              Toutes
-            </Button>
-            <Button
-              variant={statusFilter === "pending" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter("pending")}
-              className={
-                statusFilter === "pending"
-                  ? "bg-yellow-600 hover:bg-yellow-700"
-                  : ""
-              }
-            >
-              En attente
-            </Button>
-            <Button
-              variant={statusFilter === "confirmed" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter("confirmed")}
-              className={
-                statusFilter === "confirmed"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : ""
-              }
-            >
-              Confirmées
-            </Button>
-            <Button
-              variant={statusFilter === "cancelled" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter("cancelled")}
-              className={
-                statusFilter === "cancelled"
-                  ? "bg-red-600 hover:bg-red-700"
-                  : ""
-              }
-            >
-              Annulées
-            </Button>
-            <Button
-              variant={statusFilter === "completed" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter("completed")}
-              className={
-                statusFilter === "completed"
-                  ? "bg-blue-600 hover:bg-blue-700"
-                  : ""
-              }
-            >
-              Terminées
-            </Button>
-          </div>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Nouvelle réservation
+          </Button>
+          <Button
+            onClick={() => {
+              const doc = generateReservationsListPDF(filteredReservations);
+              doc.save("liste-reservations.pdf");
+            }}
+            variant="outline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            PDF
+          </Button>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden w-full">
+      {/* Filters bar */}
+      <div className="bg-card rounded-2xl border border-border p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Search */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              router.push(`/admin/reservations?search=${encodeURIComponent(search)}`);
+            }}
+            className="flex gap-2 flex-1"
+          >
+            <input
+              type="text"
+              placeholder="Rechercher par numéro ou email..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 px-3 py-2 border border-border rounded-lg bg-background text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500 transition-colors"
+            />
+            <Button type="submit" size="sm" variant="outline" onClick={() => router.refresh()}>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </Button>
+          </form>
+
+          {/* Date range filter */}
+          <div className="flex items-center gap-2">
+            <label className="text-xs text-muted-foreground shrink-0">Du</label>
+            <Popover open={dateFromOpen} onOpenChange={setDateFromOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 border border-border rounded-lg bg-background text-sm hover:bg-secondary transition-colors",
+                    !dateFrom && "text-muted-foreground"
+                  )}
+                >
+                  {dateFrom ? format(dateFrom, "d MMM yyyy", { locale: fr }) : "Date début"}
+                  <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateFrom}
+                  onSelect={(date) => { setDateFrom(date); setDateFromOpen(false); }}
+                  locale={fr}
+                />
+              </PopoverContent>
+            </Popover>
+            <label className="text-xs text-muted-foreground shrink-0">au</label>
+            <Popover open={dateToOpen} onOpenChange={setDateToOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-2 border border-border rounded-lg bg-background text-sm hover:bg-secondary transition-colors",
+                    !dateTo && "text-muted-foreground"
+                  )}
+                >
+                  {dateTo ? format(dateTo, "d MMM yyyy", { locale: fr }) : "Date fin"}
+                  <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dateTo}
+                  onSelect={(date) => { setDateTo(date); setDateToOpen(false); }}
+                  locale={fr}
+                  disabled={(date) => dateFrom ? date < dateFrom : false}
+                />
+              </PopoverContent>
+            </Popover>
+            {(dateFrom || dateTo) && (
+              <button
+                onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                Effacer
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Status filter */}
+        <div className="flex flex-wrap gap-1.5">
+          {[
+            { value: null, label: "Toutes", color: "" },
+            { value: "pending", label: "En attente", color: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20" },
+            { value: "confirmed", label: "Confirmées", color: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20" },
+            { value: "cancelled", label: "Annulées", color: "bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20" },
+            { value: "completed", label: "Terminées", color: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20" },
+          ].map((filter) => (
+            <button
+              key={filter.label}
+              onClick={() => setStatusFilter(filter.value)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                statusFilter === filter.value
+                  ? filter.value
+                    ? filter.color
+                    : "bg-foreground text-background border-foreground"
+                  : "border-border text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Table */}
+      <div className="bg-card rounded-2xl border border-border overflow-hidden w-full">
         <div className="overflow-x-auto w-full">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-secondary/50">
               <tr>
                 <th
                   scope="col"

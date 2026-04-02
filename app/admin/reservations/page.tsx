@@ -11,7 +11,8 @@ interface SearchParams {
 
 export default async function ReservationsPage({ searchParams }: any) {
   // Extract and process search parameters
-  const { search: searchQuery, page } = searchParams;
+  const params = await searchParams;
+  const { search: searchQuery, page } = params;
 
   const pageNumber = page ? parseInt(page) : 1;
 

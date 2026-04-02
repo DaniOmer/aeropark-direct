@@ -108,7 +108,7 @@ export default function ParkingLotForm({
         <div className="md:col-span-2">
           <Label
             htmlFor="name"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Nom du parking
           </Label>
@@ -117,7 +117,7 @@ export default function ParkingLotForm({
             name="name"
             value={formData.name}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -125,7 +125,7 @@ export default function ParkingLotForm({
         <div className="md:col-span-2">
           <Label
             htmlFor="address"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Adresse
           </Label>
@@ -134,7 +134,7 @@ export default function ParkingLotForm({
             name="address"
             value={formData.address}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -142,7 +142,7 @@ export default function ParkingLotForm({
         <div>
           <Label
             htmlFor="city"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Ville
           </Label>
@@ -151,7 +151,7 @@ export default function ParkingLotForm({
             name="city"
             value={formData.city}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -159,7 +159,7 @@ export default function ParkingLotForm({
         <div>
           <Label
             htmlFor="postal_code"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Code postal
           </Label>
@@ -168,7 +168,7 @@ export default function ParkingLotForm({
             name="postal_code"
             value={formData.postal_code}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -176,7 +176,7 @@ export default function ParkingLotForm({
         <div>
           <Label
             htmlFor="country"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Pays
           </Label>
@@ -185,7 +185,7 @@ export default function ParkingLotForm({
             name="country"
             value={formData.country}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -193,7 +193,7 @@ export default function ParkingLotForm({
         <div>
           <Label
             htmlFor="phone"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Téléphone
           </Label>
@@ -202,7 +202,7 @@ export default function ParkingLotForm({
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -210,7 +210,7 @@ export default function ParkingLotForm({
         <div>
           <Label
             htmlFor="email"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Email
           </Label>
@@ -220,7 +220,7 @@ export default function ParkingLotForm({
             type="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
             required
           />
         </div>
@@ -230,11 +230,11 @@ export default function ParkingLotForm({
             id="is_active"
             checked={formData.is_active}
             onCheckedChange={handleCheckboxChange}
-            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
           />
           <Label
             htmlFor="is_active"
-            className="text-sm font-medium text-gray-700 dark:text-gray-300"
+            className="text-sm font-medium text-foreground"
           >
             Actif
           </Label>
@@ -243,7 +243,7 @@ export default function ParkingLotForm({
         <div className="md:col-span-2">
           <Label
             htmlFor="description"
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            className="block text-sm font-medium text-foreground mb-1"
           >
             Description
           </Label>
@@ -253,20 +253,20 @@ export default function ParkingLotForm({
             value={formData.description || ""}
             onChange={handleChange}
             rows={4}
-            className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
           />
         </div>
 
         {/* Capacités section */}
         <div className="md:col-span-2 mt-6">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+          <h3 className="text-lg font-medium text-foreground mb-4">
             Capacités du parking
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <Label
                 htmlFor="capacity_small_cars"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Capacité voitures petites
               </Label>
@@ -277,13 +277,13 @@ export default function ParkingLotForm({
                 min="0"
                 value={formData.capacity_small_cars ?? 0}
                 onChange={handleChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
             <div>
               <Label
                 htmlFor="capacity_large_cars"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Capacité voitures grandes
               </Label>
@@ -294,13 +294,13 @@ export default function ParkingLotForm({
                 min="0"
                 value={formData.capacity_large_cars ?? 0}
                 onChange={handleChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
             <div>
               <Label
                 htmlFor="capacity_small_motorcycles"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Capacité motos petites
               </Label>
@@ -311,13 +311,13 @@ export default function ParkingLotForm({
                 min="0"
                 value={formData.capacity_small_motorcycles ?? 0}
                 onChange={handleChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
             <div>
               <Label
                 htmlFor="capacity_large_motorcycles"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                className="block text-sm font-medium text-foreground mb-1"
               >
                 Capacité motos grandes
               </Label>
@@ -328,7 +328,7 @@ export default function ParkingLotForm({
                 min="0"
                 value={formData.capacity_large_motorcycles ?? 0}
                 onChange={handleChange}
-                className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border-border shadow-sm focus:border-primary focus:ring-primary"
               />
             </div>
           </div>
@@ -336,7 +336,7 @@ export default function ParkingLotForm({
       </div>
 
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 p-4 rounded-md mt-4">
+        <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-xl mt-4">
           {error}
         </div>
       )}
@@ -348,7 +348,7 @@ export default function ParkingLotForm({
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="border-gray-300 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+            className="border-border text-foreground hover:bg-secondary/30"
           >
             Annuler
           </Button>
@@ -356,7 +356,7 @@ export default function ParkingLotForm({
         <Button
           type="submit"
           disabled={isSubmitting}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
         >
           {isSubmitting
             ? "Enregistrement..."

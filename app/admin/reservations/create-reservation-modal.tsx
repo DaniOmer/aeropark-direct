@@ -17,6 +17,18 @@ import {
 } from "@/app/actions";
 import { createClient } from "@/utils/supabase/client";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Select as ShadSelect,
+  SelectContent as ShadSelectContent,
+  SelectItem as ShadSelectItem,
+  SelectTrigger as ShadSelectTrigger,
+  SelectValue as ShadSelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 type CreateReservationModalProps = {
   isOpen: boolean;
@@ -170,26 +182,30 @@ export default function CreateReservationModal({
   const timeOptions = generateTimeOptions();
 
   // États pour gérer séparément les dates et les heures
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [startDateOpen, setStartDateOpen] = useState(false);
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [endTime, setEndTime] = useState("");
 
   // Mettre à jour formData quand les dates ou heures changent
   useEffect(() => {
     if (startDate && startTime) {
+      const dateStr = format(startDate, "yyyy-MM-dd");
       setFormData({
         ...formData,
-        start_date: `${startDate}T${startTime}:00`,
+        start_date: `${dateStr}T${startTime}:00`,
       });
     }
   }, [startDate, startTime]);
 
   useEffect(() => {
     if (endDate && endTime) {
+      const dateStr = format(endDate, "yyyy-MM-dd");
       setFormData({
         ...formData,
-        end_date: `${endDate}T${endTime}:00`,
+        end_date: `${dateStr}T${endTime}:00`,
       });
     }
   }, [endDate, endTime]);
@@ -309,9 +325,9 @@ export default function CreateReservationModal({
   useEffect(() => {
     if (isOpen) {
       // Réinitialiser les champs de date et heure
-      setStartDate("");
+      setStartDate(undefined);
       setStartTime("");
-      setEndDate("");
+      setEndDate(undefined);
       setEndTime("");
     }
   }, [isOpen]);
@@ -649,84 +665,114 @@ export default function CreateReservationModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-4">
                 <div>
-                  <Label
-                    htmlFor="start_date"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Date d'arrivée
+                  <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Date d&apos;arrivée
                   </Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    min={format(new Date(), "yyyy-MM-dd")}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
+                  <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full flex items-center justify-between rounded-md border border-gray-300 dark:border-gray-600 bg-background px-3 py-2 text-sm shadow-sm hover:bg-accent transition-colors",
+                          !startDate && "text-muted-foreground"
+                        )}
+                      >
+                        {startDate
+                          ? format(startDate, "d MMMM yyyy", { locale: fr })
+                          : "Sélectionnez une date"}
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={(date) => {
+                          setStartDate(date);
+                          if (endDate && date && date > endDate) {
+                            setEndDate(date);
+                          }
+                          setStartDateOpen(false);
+                        }}
+                        locale={fr}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
-                  <Label
-                    htmlFor="start_time"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
-                    Heure d'arrivée
+                  <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Heure d&apos;arrivée
                   </Label>
-                  <select
-                    id="start_time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    required
-                  >
-                    <option value="">Sélectionnez une heure</option>
-                    {timeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <ShadSelect value={startTime} onValueChange={setStartTime}>
+                    <ShadSelectTrigger>
+                      <ShadSelectValue placeholder="Sélectionnez une heure" />
+                    </ShadSelectTrigger>
+                    <ShadSelectContent>
+                      {timeOptions.map((option) => (
+                        <ShadSelectItem key={`admin-start-${option.value}`} value={option.value}>
+                          {option.label}
+                        </ShadSelectItem>
+                      ))}
+                    </ShadSelectContent>
+                  </ShadSelect>
                 </div>
               </div>
               <div className="space-y-4">
                 <div>
-                  <Label
-                    htmlFor="end_date"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
+                  <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Date de départ
                   </Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    min={startDate || format(new Date(), "yyyy-MM-dd")}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                    required
-                  />
+                  <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "w-full flex items-center justify-between rounded-md border border-gray-300 dark:border-gray-600 bg-background px-3 py-2 text-sm shadow-sm hover:bg-accent transition-colors",
+                          !endDate && "text-muted-foreground"
+                        )}
+                      >
+                        {endDate
+                          ? format(endDate, "d MMMM yyyy", { locale: fr })
+                          : "Sélectionnez une date"}
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={(date) => {
+                          setEndDate(date);
+                          setEndDateOpen(false);
+                        }}
+                        locale={fr}
+                        disabled={(date) =>
+                          date <
+                          (startDate || new Date(new Date().setHours(0, 0, 0, 0)))
+                        }
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
-                  <Label
-                    htmlFor="end_time"
-                    className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
-                  >
+                  <Label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Heure de départ
                   </Label>
-                  <select
-                    id="end_time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                    required
-                  >
-                    <option value="">Sélectionnez une heure</option>
-                    {timeOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  <ShadSelect value={endTime} onValueChange={setEndTime}>
+                    <ShadSelectTrigger>
+                      <ShadSelectValue placeholder="Sélectionnez une heure" />
+                    </ShadSelectTrigger>
+                    <ShadSelectContent>
+                      {timeOptions.map((option) => (
+                        <ShadSelectItem key={`admin-end-${option.value}`} value={option.value}>
+                          {option.label}
+                        </ShadSelectItem>
+                      ))}
+                    </ShadSelectContent>
+                  </ShadSelect>
                 </div>
               </div>
             </div>

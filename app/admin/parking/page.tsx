@@ -51,15 +51,15 @@ export default async function ParkingPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-extrabold text-foreground">
             {parkingLot
               ? "Modifier les informations du parking"
               : "Configurer votre parking"}
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground mt-1">
             {parkingLot
               ? "Mettez à jour les informations de votre parking"
               : "Configurez les informations de base de votre parking"}
@@ -67,7 +67,7 @@ export default async function ParkingPage() {
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      <div className="bg-card rounded-2xl border border-border p-6">
         <ParkingLotForm initialData={parkingLot} onSubmit={handleSubmit} />
       </div>
     </div>

@@ -21,18 +21,18 @@ export default function OptionsPage({
   const { addToast } = useToastContext();
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 md:p-8 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl font-extrabold text-foreground">
             Gestion des options
           </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground mt-1">
             Gérez les options supplémentaires pour votre parking
           </p>
         </div>
         <Button
-          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white"
           onClick={() => setIsModalOpen(true)}
           disabled={parkingLots.length === 0}
         >
@@ -54,7 +54,7 @@ export default function OptionsPage({
         </Button>
 
         {parkingLots.length === 0 && (
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-yellow-800 mt-4 w-full">
+          <div className="p-4 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl text-amber-800 dark:text-amber-200 mt-4 w-full">
             <p className="flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -104,49 +104,49 @@ export default function OptionsPage({
         />
       </div>
 
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
+          <table className="min-w-full divide-y divide-border">
+            <thead className="bg-secondary/50">
               <tr>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Nom
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider hidden md:table-cell"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider hidden md:table-cell"
                 >
                   Description
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Prix
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Statut
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                  className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider"
                 >
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="bg-card divide-y divide-border">
               {options.length === 0 ? (
                 <tr>
                   <td
                     colSpan={5}
-                    className="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400"
+                    className="px-6 py-4 text-center text-sm text-muted-foreground"
                   >
                     Aucune option trouvée
                   </td>
@@ -155,27 +155,27 @@ export default function OptionsPage({
                 options.map((option) => (
                   <tr
                     key={option.id}
-                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="hover:bg-secondary/30 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground">
                       {option.name}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
+                    <td className="px-6 py-4 text-sm text-muted-foreground hidden md:table-cell">
                       {option.description || (
-                        <em className="text-gray-400 dark:text-gray-500">
+                        <em className="text-muted-foreground">
                           Aucune description
                         </em>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                       {option.price} €
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           option.is_active
-                            ? "bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100"
-                            : "bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100"
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : "bg-red-500/10 text-red-600 dark:text-red-400"
                         }`}
                       >
                         {option.is_active ? "Actif" : "Inactif"}
@@ -187,7 +187,7 @@ export default function OptionsPage({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900"
+                            className="text-primary border-primary hover:bg-primary/5"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -210,7 +210,7 @@ export default function OptionsPage({
                           <Button
                             variant="destructive"
                             size="sm"
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-red-500 hover:bg-red-600"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
