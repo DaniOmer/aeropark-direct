@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("Request body:", body);
 
-    const { reservationId, amount } = body;
+    const { reservationId, amount, customerEmail } = body;
 
     if (!reservationId || !amount) {
       console.log("Missing required parameters:", { reservationId, amount });
@@ -83,11 +83,10 @@ export async function POST(request: NextRequest) {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Stripe expects amount in cents
         currency: "eur",
+        receipt_email: customerEmail || undefined,
         metadata: {
           reservationId,
         },
-        // In a production app, you might want to capture customer details
-        // and set up automatic payment methods
       });
 
       console.log("Payment intent created successfully:", {

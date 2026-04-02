@@ -193,6 +193,7 @@ async function PaymentPageContent(searchParams: {
           <PaymentForm
             reservationId={reservation.id}
             amount={reservation.total_price}
+            customerEmail={reservationUser.email}
           />
         </div>
       </div>

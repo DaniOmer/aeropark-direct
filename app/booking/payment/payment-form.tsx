@@ -38,7 +38,7 @@ const cardElementOptions = {
 };
 
 // Create a payment intent on the server
-const createPaymentIntent = async (reservationId: string, amount: number) => {
+const createPaymentIntent = async (reservationId: string, amount: number, customerEmail?: string) => {
   try {
     console.log("Sending request to /api/create-payment-intent");
 
@@ -50,6 +50,7 @@ const createPaymentIntent = async (reservationId: string, amount: number) => {
       body: JSON.stringify({
         reservationId,
         amount,
+        customerEmail,
       }),
     });
 
@@ -74,9 +75,11 @@ const createPaymentIntent = async (reservationId: string, amount: number) => {
 const CheckoutForm = ({
   reservationId,
   amount,
+  customerEmail,
 }: {
   reservationId: string;
   amount: number;
+  customerEmail?: string;
 }) => {
   const [succeeded, setSucceeded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -98,7 +101,7 @@ const CheckoutForm = ({
           "amount:",
           amount
         );
-        const response = await createPaymentIntent(reservationId, amount);
+        const response = await createPaymentIntent(reservationId, amount, customerEmail);
 
         // If there's an error message from the server, display it
         if (response.error) {
@@ -273,13 +276,15 @@ const CheckoutForm = ({
 export default function PaymentForm({
   reservationId,
   amount,
+  customerEmail,
 }: {
   reservationId: string;
   amount: number;
+  customerEmail?: string;
 }) {
   return (
     <Elements stripe={stripePromise}>
-      <CheckoutForm reservationId={reservationId} amount={amount} />
+      <CheckoutForm reservationId={reservationId} amount={amount} customerEmail={customerEmail} />
     </Elements>
   );
 }
