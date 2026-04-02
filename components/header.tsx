@@ -22,11 +22,11 @@ export default function Header() {
   };
 
   return (
-    <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
+    <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16 sticky top-0 z-50 bg-background/80 backdrop-blur-md">
       <div className="w-full max-w-screen-xl flex justify-between items-center p-3 px-5 text-sm">
         <div className="flex gap-5 items-center">
           <Link href={"/"} className="font-bold text-lg text-primary">
-            <Image src={Logo} width={60} height={60} alt="ParkAero Direct" />
+            <Image src={Logo} width={60} height={60} alt="ParkAero Direct" priority />
           </Link>
           <div className="hidden md:flex gap-6 ml-8">
             <Link href={"/"} className="hover:text-primary transition-colors">
@@ -62,7 +62,7 @@ export default function Header() {
                     onClick={() => router.push("/admin")}
                     variant={"outline"}
                   >
-                    Backoffice
+                    Dashboard
                   </Button>
                 ) : (
                   <Button
@@ -147,7 +147,7 @@ export default function Header() {
                     }}
                     variant={"outline"}
                   >
-                    Backoffice
+                    Dashboard
                   </Button>
                 ) : (
                   <Button

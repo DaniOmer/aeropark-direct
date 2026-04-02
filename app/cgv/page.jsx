@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Conditions Générales de Vente",
+  description: "Conditions générales de vente du service de stationnement ParkAero Direct près de l'aéroport d'Orly.",
+  alternates: { canonical: "/cgv" },
+};
+
 export default function CGV() {
   return (
     <div className="container mx-auto px-4 py-8">

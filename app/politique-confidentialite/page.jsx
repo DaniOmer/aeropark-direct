@@ -1,5 +1,11 @@
 import Link from "next/link";
 
+export const metadata = {
+  title: "Politique de confidentialité",
+  description: "Politique de confidentialité et protection des données personnelles de ParkAero Direct.",
+  alternates: { canonical: "/politique-confidentialite" },
+};
+
 export default function PolitiqueConfidentialite() {
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,111 +1,112 @@
 import React from "react";
 
+const features = [
+  {
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6 text-cyan-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+        />
+      </svg>
+    ),
+    title: "Vidéosurveillance 24h/24",
+    description:
+      "Caméras HD + présence humaine permanente sur site, jour et nuit.",
+  },
+  {
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6 text-cyan-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+        />
+      </svg>
+    ),
+    title: "Accès sécurisé par portail",
+    description:
+      "Portail automatique contrôlé. Votre véhicule est à l'abri des menaces extérieures.",
+  },
+  {
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-6 w-6 text-cyan-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+        />
+      </svg>
+    ),
+    title: "Navette gratuite incluse",
+    description:
+      "Transfert aller-retour offert vers Orly. Disponible 24h/24, 7j/7, sans supplément.",
+  },
+];
+
 export default function FeaturesSection() {
   return (
-    <section className="py-16 bg-secondary">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-12">
-          Accessible, sécurisé et efficace
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Feature 1: Parking Surveillé */}
-          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-4">PARKING SURVEILLÉ</h3>
-            <p className="text-muted-foreground mb-4">
-              Parking sous{" "}
-              <span className="font-semibold">vidéosurveillance constante</span>{" "}
-              avec présence humaine 24h/7j.
+    <section className="py-16 md:py-20 bg-[#0c1821]">
+      <div className="container max-w-screen-xl mx-auto px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[35%_60%] gap-10 lg:gap-[5%] items-center">
+          {/* Left — text */}
+          <div className="text-white">
+            <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-400 mb-1">
+              Nos engagements
             </p>
-            <p className="text-muted-foreground">
-              L&apos;accès au parking est régulé par un portail automatique,
-              évitant ainsi d&apos;exposer votre véhicule aux menaces
-              extérieures.
+            <h2 className="text-2xl md:text-3xl font-extrabold leading-tight mb-3">
+              Pourquoi nous
+              <br />
+              faire confiance
+            </h2>
+            <p className="text-sm text-white/45 leading-relaxed">
+              Chaque détail est pensé pour que vous partiez l&apos;esprit léger
+              et retrouviez votre véhicule en parfait état.
             </p>
           </div>
 
-          {/* Feature 2: Accessibilité */}
-          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
+          {/* Right — features list */}
+          <div className="flex flex-col gap-4">
+            {features.map((feature) => (
+              <div
+                key={feature.title}
+                className="flex items-start gap-4 bg-white/[0.04] border border-white/[0.06] rounded-xl p-5 transition-colors hover:bg-white/[0.06]"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-4">ACCESSIBILITÉ</h3>
-            <p className="text-muted-foreground mb-4">
-              À <span className="font-semibold">quelques minutes</span> de
-              l&apos;aéroport, avec transfert rapide vers Orly.
-            </p>
-            <p className="text-muted-foreground">
-              Notre emplacement stratégique vous permet d&apos;accéder
-              facilement à l&apos;aéroport tout en bénéficiant de tarifs
-              avantageux.
-            </p>
-          </div>
-
-          {/* Feature 3: Navette Offerte */}
-          <div className="bg-card p-8 rounded-xl shadow-md flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8 text-primary"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
-                />
-              </svg>
-            </div>
-            <h3 className="text-xl font-bold mb-4">NAVETTE OFFERTE</h3>
-            <p className="text-muted-foreground mb-4">
-              Les trajets en{" "}
-              <span className="font-semibold">
-                navette vers et depuis l&apos;aéroport
-              </span>{" "}
-              sont offerts.
-            </p>
-            <p className="text-muted-foreground">
-              Nos navettes confortables vous déposent directement à Orly et vous
-              récupèrent à votre retour, sans frais supplémentaires.
-            </p>
+                <div className="w-11 h-11 shrink-0 bg-gradient-to-br from-cyan-500/15 to-teal-500/10 rounded-xl flex items-center justify-center">
+                  {feature.icon}
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-1">
+                    {feature.title}
+                  </h3>
+                  <p className="text-xs text-white/45 leading-relaxed">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

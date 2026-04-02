@@ -1,10 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { format as formatDate } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Checkbox } from "./ui/checkbox";
+import { Calendar } from "./ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { cn } from "@/lib/utils";
 import type { UIPricingPlan } from "@/app/tarifs/types";
 import type { OptionData } from "@/app/actions";
 
@@ -100,9 +113,11 @@ export default function PricingCalculator({
   pricingPlans,
   options,
 }: PricingCalculatorProps) {
-  const [startDate, setStartDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [startDateOpen, setStartDateOpen] = useState(false);
   const [startTime, setStartTime] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [endDateOpen, setEndDateOpen] = useState(false);
   const [endTime, setEndTime] = useState("");
   const [calculatedPrice, setCalculatedPrice] = useState<number | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<UIPricingPlan | null>(null);
@@ -184,9 +199,12 @@ export default function PricingCalculator({
       return;
     }
 
+    const startDateStr = formatDate(startDate, "yyyy-MM-dd");
+    const endDateStr = formatDate(endDate, "yyyy-MM-dd");
+
     // Extra validation to ensure end date is not before start date
-    const startDateTime = new Date(`${startDate}T${startTime}`);
-    const endDateTime = new Date(`${endDate}T${endTime}`);
+    const startDateTime = new Date(`${startDateStr}T${startTime}`);
+    const endDateTime = new Date(`${endDateStr}T${endTime}`);
 
     if (endDateTime <= startDateTime) {
       alert(
@@ -195,7 +213,7 @@ export default function PricingCalculator({
       return;
     }
 
-    const calculatedDays = calculateDays(startDate, endDate);
+    const calculatedDays = calculateDays(startDateStr, endDateStr);
     setDays(calculatedDays);
 
     if (calculatedDays <= 0) {
@@ -230,103 +248,115 @@ export default function PricingCalculator({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
           <div className="mb-4">
-            <Label
-              htmlFor="arrival-date"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label className="block text-sm font-medium mb-1">
               Date de début
             </Label>
-            <Input
-              type="date"
-              id="arrival-date"
-              value={startDate}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                // If end date is before new start date, update end date
-                if (endDate && new Date(e.target.value) > new Date(endDate)) {
-                  setEndDate(e.target.value);
-                }
-              }}
-              min={new Date().toISOString().split("T")[0]} // Set minimum date to today
-              className="w-full"
-              required
-            />
+            <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent transition-colors",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  {startDate
+                    ? formatDate(startDate, "d MMMM yyyy", { locale: fr })
+                    : "Sélectionnez une date"}
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    if (endDate && date && date > endDate) {
+                      setEndDate(date);
+                    }
+                    setStartDateOpen(false);
+                  }}
+                  locale={fr}
+                  disabled={(date) =>
+                    date < new Date(new Date().setHours(0, 0, 0, 0))
+                  }
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="mb-4">
-            <Label
-              htmlFor="arrival-time"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label className="block text-sm font-medium mb-1">
               Heure de début
             </Label>
-            <select
-              id="arrival-time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              required
-            >
-              <option value="">Sélectionnez une heure</option>
-              {timeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Select value={startTime} onValueChange={setStartTime}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez une heure" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((option) => (
+                  <SelectItem key={`calc-start-${option.value}`} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
         <div>
           <div className="mb-4">
-            <Label
-              htmlFor="departure-date"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label className="block text-sm font-medium mb-1">
               Date de fin
             </Label>
-            <Input
-              type="date"
-              id="departure-date"
-              value={endDate}
-              onChange={(e) => {
-                // Only set the end date if it's not before the start date
-                const newEndDate = e.target.value;
-                if (!startDate || new Date(newEndDate) >= new Date(startDate)) {
-                  setEndDate(newEndDate);
-                } else {
-                  // If invalid date is selected, alert the user
-                  alert(
-                    "La date de fin ne peut pas être antérieure à la date de début"
-                  );
-                  // Reset to start date
-                  setEndDate(startDate);
-                }
-              }}
-              min={startDate || new Date().toISOString().split("T")[0]} // Set minimum date to start date or today
-              className="w-full"
-            />
+            <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className={cn(
+                    "w-full flex items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background hover:bg-accent transition-colors",
+                    !endDate && "text-muted-foreground"
+                  )}
+                >
+                  {endDate
+                    ? formatDate(endDate, "d MMMM yyyy", { locale: fr })
+                    : "Sélectionnez une date"}
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setEndDateOpen(false);
+                  }}
+                  locale={fr}
+                  disabled={(date) =>
+                    date <
+                    (startDate || new Date(new Date().setHours(0, 0, 0, 0)))
+                  }
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="mb-4">
-            <Label
-              htmlFor="departure-time"
-              className="block text-sm font-medium mb-1"
-            >
+            <Label className="block text-sm font-medium mb-1">
               Heure de fin
             </Label>
-            <select
-              id="departure-time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-              className="w-full rounded-md border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              required
-            >
-              <option value="">Sélectionnez une heure</option>
-              {timeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Select value={endTime} onValueChange={setEndTime}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez une heure" />
+              </SelectTrigger>
+              <SelectContent>
+                {timeOptions.map((option) => (
+                  <SelectItem key={`calc-end-${option.value}`} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>

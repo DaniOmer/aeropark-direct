@@ -1,7 +1,5 @@
 "use client";
 
-import { FormMessage, Message } from "@/components/form-message";
-import { SubmitButton } from "@/components/submit-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/auth-context";
@@ -9,7 +7,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState, Suspense } from "react";
 
-// Composant qui utilise useSearchParams
 function SignInForm() {
   const searchParams = useSearchParams();
   const returnUrl = searchParams?.get("returnUrl") || "";
@@ -18,7 +15,7 @@ function SignInForm() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState(error);
-  const { signIn, user } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -54,56 +51,94 @@ function SignInForm() {
   };
 
   return (
-    <form
-      className="flex-1 flex flex-col w-full max-w-md mx-auto"
-      onSubmit={handleSubmit}
-    >
-      <h1 className="text-2xl font-medium">Se connecter</h1>
-      <p className="text-sm text-foreground">
-        Vous n'avez pas de compte ?{" "}
-        <Link className="text-foreground font-medium underline" href="/sign-up">
-          S'inscrire
+    <div className="w-full max-w-md">
+      <div className="text-center mb-8">
+        <Link href="/" className="text-2xl font-extrabold text-foreground">
+          ParkAero <span className="text-primary">Direct</span>
         </Link>
-      </p>
-      <div className="flex flex-col gap-2 [&>input]:mb-3 mt-8">
-        <Label htmlFor="email">Email</Label>
-        <Input name="email" placeholder="vous@exemple.com" required />
-        <div className="flex justify-between items-center">
-          <Label htmlFor="password">Mot de passe</Label>
-          <Link
-            className="text-xs text-foreground underline"
-            href="/forgot-password"
-          >
-            Mot de passe oublié ?
-          </Link>
-        </div>
-        <Input
-          type="password"
-          name="password"
-          placeholder="Votre mot de passe"
-          required
-        />
-        {returnUrl && (
-          <input type="hidden" name="returnUrl" value={returnUrl} />
-        )}
-        <SubmitButton pendingText="Connexion en cours..." disabled={isLoading}>
-          Se connecter
-        </SubmitButton>
-        {errorMessage && (
-          <div className="text-red-500 text-sm mt-2">{errorMessage}</div>
-        )}
-        {success && (
-          <div className="text-green-500 text-sm mt-2">{success}</div>
-        )}
       </div>
-    </form>
+
+      <div className="bg-card rounded-2xl shadow-sm border border-border p-8">
+        <h1 className="text-2xl font-bold mb-1">Se connecter</h1>
+        <p className="text-sm text-muted-foreground mb-6">
+          Vous n&apos;avez pas de compte ?{" "}
+          <Link
+            className="text-primary font-medium hover:underline"
+            href="/sign-up"
+          >
+            S&apos;inscrire
+          </Link>
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email" className="text-sm font-medium mb-1.5 block">
+              Email
+            </Label>
+            <Input
+              name="email"
+              placeholder="vous@exemple.com"
+              required
+              className="rounded-lg focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1.5">
+              <Label htmlFor="password" className="text-sm font-medium">
+                Mot de passe
+              </Label>
+              <Link
+                className="text-xs text-primary hover:underline"
+                href="/forgot-password"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
+            <Input
+              type="password"
+              name="password"
+              placeholder="Votre mot de passe"
+              required
+              className="rounded-lg focus:ring-2 focus:ring-cyan-500/40 focus:border-cyan-500"
+            />
+          </div>
+
+          {returnUrl && (
+            <input type="hidden" name="returnUrl" value={returnUrl} />
+          )}
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-semibold py-2.5 rounded-xl shadow-[0_4px_14px_rgba(14,165,233,0.35)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? "Connexion en cours..." : "Se connecter"}
+          </button>
+
+          {errorMessage && (
+            <div className="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 text-sm p-3 rounded-lg">
+              {errorMessage}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-sm p-3 rounded-lg">
+              {success}
+            </div>
+          )}
+        </form>
+      </div>
+    </div>
   );
 }
 
-// Composant principal avec Suspense
 export default function Login() {
   return (
-    <Suspense fallback={<div>Chargement...</div>}>
+    <Suspense
+      fallback={
+        <div className="text-muted-foreground">Chargement...</div>
+      }
+    >
       <SignInForm />
     </Suspense>
   );

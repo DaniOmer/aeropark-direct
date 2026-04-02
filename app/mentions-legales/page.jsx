@@ -1,3 +1,9 @@
+export const metadata = {
+  title: "Mentions légales",
+  description: "Mentions légales du site ParkAero Direct, parking sécurisé près de l'aéroport d'Orly.",
+  alternates: { canonical: "/mentions-legales" },
+};
+
 export default function MentionsLegales() {
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,9 +1,7 @@
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Conditions Générales d'Utilisation | AéroPark Direct",
-  description:
-    "Conditions générales d'utilisation du service de stationnement AéroPark Direct",
+export const metadata = {
+  title: "Conditions Générales d'Utilisation",
+  description: "Conditions générales d'utilisation du service de stationnement ParkAero Direct près de l'aéroport d'Orly.",
+  alternates: { canonical: "/cgu" },
 };
 
 export default function CGUPage() {
