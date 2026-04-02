@@ -8,6 +8,10 @@ import { ToastProvider } from "@/components/providers/toast-provider";
 import { AuthProvider } from "@/contexts/auth-context";
 import { WhatsAppButton } from "@/components/whatsapp-button";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import Image from "next/image";
+import Logo from "@/public/park-aero.jpg";
+import JsonLd from "@/components/json-ld";
+import Breadcrumbs from "@/components/breadcrumbs";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -15,9 +19,55 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "ParkAero Direct | Parking aéroport avec navette gratuite",
+  title: {
+    default: "ParkAero Direct | Parking aéroport Orly avec navette gratuite",
+    template: "%s | ParkAero Direct",
+  },
   description:
-    "Réservez votre parking situé à moins de 10 minutes de l'aéroport avec navette gratuite 24h/24 – 7j/7.",
+    "Parking sécurisé à moins de 10 minutes de l'aéroport d'Orly avec navette gratuite 24h/24 – 7j/7. Tarifs compétitifs, vidéosurveillance, réservation en ligne.",
+  keywords: [
+    "parking aéroport Orly",
+    "parking Orly pas cher",
+    "parking navette Orly",
+    "parking sécurisé Orly",
+    "parking longue durée Orly",
+    "navette gratuite aéroport",
+    "parking Viry-Châtillon",
+    "stationnement aéroport Orly",
+    "parking aéroport pas cher",
+    "ParkAero Direct",
+  ],
+  authors: [{ name: "ParkAero Direct" }],
+  creator: "ParkAero Direct",
+  openGraph: {
+    type: "website",
+    locale: "fr_FR",
+    siteName: "ParkAero Direct",
+    title: "ParkAero Direct | Parking aéroport Orly avec navette gratuite",
+    description:
+      "Parking sécurisé à 10 min d'Orly. Navette gratuite 24h/24, vidéosurveillance, tarifs imbattables. Réservez en ligne en 30 secondes.",
+    url: defaultUrl,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ParkAero Direct | Parking aéroport Orly",
+    description:
+      "Parking sécurisé à 10 min d'Orly. Navette gratuite 24h/24. Réservez en ligne.",
+  },
+  alternates: {
+    canonical: defaultUrl,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 const geistSans = Geist({
@@ -32,7 +82,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={geistSans.className} suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://js.stripe.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://js.stripe.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
       <body className="bg-background text-foreground">
+        <JsonLd />
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -42,59 +99,57 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <main className="min-h-screen flex flex-col items-center">
-                <div className="flex-1 w-full flex flex-col gap-20 items-center">
+                <div className="flex-1 w-full flex flex-col items-center">
                   <Header />
-                  <div className="flex max-w-screen-xl flex-col gap-20 container p-5">
+                  <Breadcrumbs />
+                  <div className="w-full">
                     {children}
                   </div>
 
-                  <footer className="w-full bg-secondary text-secondary-foreground py-16">
-                    <div className="container max-w-screen-xl mx-auto px-4">
-                      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-                        <div>
-                          <h3 className="text-lg font-bold mb-4">
-                            ParkAero Direct
-                          </h3>
-                          <p className="text-muted-foreground text-sm">
-                            Parking sécurisé à proximité de l&apos;aéroport, 10
-                            minutes de Orly, avec navette gratuite 24h/24 et
-                            7j/7.
+                  <footer className="w-full bg-[#0c1821] text-white pt-14 pb-6">
+                    <div className="container max-w-screen-xl mx-auto px-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8 mb-10">
+                        <div className="sm:col-span-2 lg:col-span-1">
+                          <div className="mb-3">
+                            <Image
+                              src={Logo}
+                              width={60}
+                              height={60}
+                              alt="ParkAero Direct"
+                            />
+                          </div>
+                          <p className="text-white/40 text-sm leading-relaxed">
+                            Parking sécurisé à proximité de l&apos;aéroport
+                            d&apos;Orly, avec navette gratuite disponible
+                            24h/24.
                           </p>
                         </div>
 
                         <div>
-                          <h3 className="text-lg font-bold mb-4">
-                            Liens rapides
-                          </h3>
-                          <ul className="space-y-2 text-sm">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-400/60 mb-4">
+                            Navigation
+                          </h4>
+                          <ul className="space-y-2.5 text-sm">
                             <li>
                               <Link
                                 href="/"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
                                 Accueil
                               </Link>
                             </li>
                             <li>
                               <Link
-                                href="#"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
-                              >
-                                Réservation
-                              </Link>
-                            </li>
-                            <li>
-                              <Link
                                 href="/services"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
-                                Nos services
+                                Services
                               </Link>
                             </li>
                             <li>
                               <Link
                                 href="/tarifs"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
                                 Tarifs
                               </Link>
@@ -102,7 +157,7 @@ export default function RootLayout({
                             <li>
                               <Link
                                 href="/contact"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
                                 Contact
                               </Link>
@@ -111,35 +166,36 @@ export default function RootLayout({
                         </div>
 
                         <div>
-                          <h3 className="text-lg font-bold mb-4">Contact</h3>
-                          <ul className="space-y-2 text-sm text-muted-foreground">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-400/60 mb-4">
+                            Contact
+                          </h4>
+                          <ul className="space-y-2.5 text-sm text-white/40">
                             <li>3 avenue germaine</li>
                             <li>91170 Viry-Châtillon</li>
-                            <li>Tél: 07 83 82 92 60</li>
-                            <li>Email: aeroparkdirect@hotmail.com</li>
+                            <li>07 83 82 92 60</li>
+                            <li>aeroparkdirect@hotmail.com</li>
                           </ul>
                         </div>
 
                         <div>
-                          <h3 className="text-lg font-bold mb-4">Horaires</h3>
-                          <p className="text-muted-foreground text-sm mb-2">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-400/60 mb-4">
+                            Horaires
+                          </h4>
+                          <p className="text-white/40 text-sm leading-relaxed mb-4">
                             Accueil et navette disponibles 24h/24 et 7j/7.
                           </p>
-                          <div className="flex items-center mt-4">
-                            <ThemeSwitcher />
-                          </div>
+                          <ThemeSwitcher />
                         </div>
 
-                        {/* Liens vers les mentions légales */}
                         <div>
-                          <h3 className="text-lg font-bold mb-4">
-                            Mentions légales
-                          </h3>
-                          <ul className="space-y-2 text-sm">
+                          <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-cyan-400/60 mb-4">
+                            Légal
+                          </h4>
+                          <ul className="space-y-2.5 text-sm">
                             <li>
                               <Link
                                 href="/mentions-legales"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
                                 Mentions légales
                               </Link>
@@ -147,32 +203,32 @@ export default function RootLayout({
                             <li>
                               <Link
                                 href="/cgu"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
-                                Conditions Générales d&apos;Utilisation
+                                CGU
                               </Link>
                             </li>
                             <li>
                               <Link
                                 href="/cgv"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
-                                Conditions Générales de Vente
+                                CGV
                               </Link>
                             </li>
                             <li>
                               <Link
                                 href="/politique-confidentialite"
-                                className="text-muted-foreground hover:text-secondary-foreground transition-colors"
+                                className="text-white/40 hover:text-white transition-colors"
                               >
-                                Politique de Confidentialité
+                                Confidentialité
                               </Link>
                             </li>
                           </ul>
                         </div>
                       </div>
 
-                      <div className="border-t border-muted mt-12 pt-8 text-center text-xs text-muted-foreground">
+                      <div className="border-t border-white/[0.06] pt-5 text-center text-xs text-white/25">
                         <p>
                           © {new Date().getFullYear()} ParkAero Direct. Tous
                           droits réservés.
