@@ -708,18 +708,24 @@ export default function GuestBookingForm({
             <div className="border-t border-border mt-4 pt-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Prix de base</span>
-                <span>{basePrice} €</span>
+                <span>{basePrice.toFixed(2)} €</span>
               </div>
-              {optionsPrice > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Options</span>
-                  <span>{optionsPrice} €</span>
-                </div>
-              )}
+              {selectedOptions.map((opt) => {
+                const option = options.find((o) => o.id === opt.option_id);
+                if (!option) return null;
+                return (
+                  <div key={opt.option_id} className="flex justify-between">
+                    <span className="text-muted-foreground">
+                      {option.name} {opt.quantity > 1 ? `×${opt.quantity}` : ""}
+                    </span>
+                    <span>{(option.price * opt.quantity).toFixed(2)} €</span>
+                  </div>
+                );
+              })}
               {peopleAdditionalFee > 0 && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Suppl. personnes</span>
-                  <span>{peopleAdditionalFee} €</span>
+                  <span>{peopleAdditionalFee.toFixed(2)} €</span>
                 </div>
               )}
             </div>
@@ -728,7 +734,7 @@ export default function GuestBookingForm({
               <div className="flex justify-between items-baseline">
                 <span className="text-lg font-bold">Total</span>
                 <span className="text-2xl font-extrabold text-primary">
-                  {totalPrice} €
+                  {totalPrice.toFixed(2)} €
                 </span>
               </div>
             </div>

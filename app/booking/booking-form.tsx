@@ -535,23 +535,31 @@ export default function BookingForm({
         <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
           <div className="flex justify-between">
             <span className="text-base font-medium">Prix de base</span>
-            <span className="text-base">{basePrice} €</span>
+            <span className="text-base">{basePrice.toFixed(2)} €</span>
           </div>
-          <div className="flex justify-between mt-2">
-            <span className="text-base font-medium">Options</span>
-            <span className="text-base">{optionsPrice} €</span>
-          </div>
+          {selectedOptions.map((opt) => {
+            const option = options.find((o) => o.id === opt.option_id);
+            if (!option) return null;
+            return (
+              <div key={opt.option_id} className="flex justify-between mt-2">
+                <span className="text-base font-medium">
+                  {option.name} {opt.quantity > 1 ? `×${opt.quantity}` : ""}
+                </span>
+                <span className="text-base">{(option.price * opt.quantity).toFixed(2)} €</span>
+              </div>
+            );
+          })}
           {peopleAdditionalFee > 0 && (
             <div className="flex justify-between mt-2">
               <span className="text-base font-medium">
                 Supplément personnes
               </span>
-              <span className="text-base">{peopleAdditionalFee} €</span>
+              <span className="text-base">{peopleAdditionalFee.toFixed(2)} €</span>
             </div>
           )}
           <div className="flex justify-between mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <span className="text-lg font-bold">Total</span>
-            <span className="text-lg font-bold">{totalPrice} €</span>
+            <span className="text-lg font-bold">{totalPrice.toFixed(2)} €</span>
           </div>
         </div>
 
