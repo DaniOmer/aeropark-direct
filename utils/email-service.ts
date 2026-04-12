@@ -333,7 +333,9 @@ export function generateReservationConfirmationEmail(reservation: any): string {
 
     <div style="background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%); border: 1px solid #a5f3fc; border-radius: 8px; padding: 20px; margin-top: 28px; text-align: center;">
       <p style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #0c1821;">Merci d'avoir choisi ParkAero Direct</p>
-      <p style="margin: 0; font-size: 13px; color: #64748b;">Si vous avez des questions, n'h\u00e9sitez pas \u00e0 nous contacter.</p>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #64748b;">Si vous avez des questions, n'h\u00e9sitez pas \u00e0 nous contacter :</p>
+      <p style="margin: 0 0 4px; font-size: 13px; color: #0c1821;">&#128222; <a href="tel:0783829260" style="color: #0891b2; text-decoration: none; font-weight: 500;">07 83 82 92 60</a></p>
+      <p style="margin: 0; font-size: 13px; color: #0c1821;">&#9993; <a href="mailto:aeroparkdirect@hotmail.com" style="color: #0891b2; text-decoration: none; font-weight: 500;">aeroparkdirect@hotmail.com</a></p>
     </div>
   `;
 

@@ -55,6 +55,8 @@ export default function ReservationsClientPage({
     useState<ReservationWithUserData | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [sortField, setSortField] =
     useState<keyof ReservationWithUserData>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -193,20 +195,20 @@ export default function ReservationsClientPage({
   };
 
   // Handle reservation deletion
-  const handleDelete = async (id: string) => {
-    if (!confirm("Êtes-vous sûr de vouloir supprimer cette réservation ?")) {
-      return;
-    }
+  const handleDelete = (id: string) => {
+    setDeleteConfirmId(id);
+  };
 
+  const confirmDelete = async () => {
+    if (!deleteConfirmId) return;
+    setIsDeleting(true);
     try {
-      const result = await deleteReservation(id);
+      const result = await deleteReservation(deleteConfirmId);
       if (result.success) {
-        // Remove the reservation from the local state
-        setReservations((prev) => prev.filter((r) => r.id !== id));
+        setReservations((prev) => prev.filter((r) => r.id !== deleteConfirmId));
         addToast("Réservation supprimée avec succès", "success");
 
-        // Close the modal if the deleted reservation was selected
-        if (selectedReservation && selectedReservation.id === id) {
+        if (selectedReservation && selectedReservation.id === deleteConfirmId) {
           setIsDetailsModalOpen(false);
           setSelectedReservation(null);
         }
@@ -220,6 +222,9 @@ export default function ReservationsClientPage({
       const errorMessage =
         error instanceof Error ? error.message : "Une erreur est survenue";
       addToast(errorMessage, "error");
+    } finally {
+      setIsDeleting(false);
+      setDeleteConfirmId(null);
     }
   };
 
@@ -799,6 +804,56 @@ export default function ReservationsClientPage({
         parkingLots={parkingLots}
         users={users}
       />
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md animate-in fade-in zoom-in-95 duration-200">
+            <div className="p-6 text-center">
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-7 w-7 text-red-600 dark:text-red-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Supprimer la réservation
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Êtes-vous sûr de vouloir supprimer cette réservation ? Cette action est irréversible.
+              </p>
+            </div>
+            <div className="flex gap-3 px-6 pb-6">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDeleteConfirmId(null)}
+                disabled={isDeleting}
+              >
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Suppression..." : "Supprimer"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
