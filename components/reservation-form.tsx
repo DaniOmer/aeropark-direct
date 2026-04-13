@@ -51,8 +51,8 @@ export default function ReservationForm() {
     return options;
   };
 
-  const arrivalTimeOptions = generateTimeOptions(5);
-  const departureTimeOptions = generateTimeOptions(30);
+  const arrivalTimeOptions = generateTimeOptions(30);
+  const departureTimeOptions = generateTimeOptions(5);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -179,8 +179,8 @@ export default function CreateReservationModal({
     return options;
   };
 
-  const arrivalTimeOptions = generateTimeOptions(5);
-  const departureTimeOptions = generateTimeOptions(30);
+  const arrivalTimeOptions = generateTimeOptions(30);
+  const departureTimeOptions = generateTimeOptions(5);
 
   // États pour gérer séparément les dates et les heures
   const [startDate, setStartDate] = useState<Date | undefined>();

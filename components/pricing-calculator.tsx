@@ -156,8 +156,8 @@ export default function PricingCalculator({
     return options;
   };
 
-  const arrivalTimeOptions = generateTimeOptions(5);
-  const departureTimeOptions = generateTimeOptions(30);
+  const arrivalTimeOptions = generateTimeOptions(30);
+  const departureTimeOptions = generateTimeOptions(5);
 
   // Reset the calculated price when inputs change
   useEffect(() => {
