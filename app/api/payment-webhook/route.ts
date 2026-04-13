@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient();
     const { data: userData, error: userError } = await supabase
       .from("users")
-      .select("email, first_name, last_name")
+      .select("email, first_name, last_name, phone")
       .eq("id", reservation.user_id)
       .single();
 
