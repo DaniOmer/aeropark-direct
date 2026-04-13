@@ -25,6 +25,8 @@ type Reservation = {
   vehicle_model: string;
   status: string;
   number: string;
+  return_flight_number: string | null;
+  number_of_people: number | null;
   users: {
     first_name: string;
     last_name: string;
@@ -86,19 +88,31 @@ function downloadPDF(reservations: Reservation[], title: string) {
   } else {
     autoTable(doc, {
       startY: 35,
-      head: [["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Statut"]],
-      body: reservations.map((r) => [
-        formatTime(title.includes("Arrivée") ? r.start_date : r.end_date),
-        `${r.users?.first_name || ""} ${r.users?.last_name || ""}`,
-        r.users?.phone || "—",
-        `${formatVehicle(r.vehicle_type)} ${r.vehicle_brand || ""} ${r.vehicle_model || ""}`.trim(),
-        r.vehicle_plate || "—",
-        r.status === "confirmed"
-          ? "Confirmé"
-          : r.status === "pending"
-            ? "En attente"
-            : r.status,
-      ]),
+      head: [title.includes("Arrivée")
+        ? ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Vol retour", "Pers.", "Statut"]
+        : ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Pers.", "Statut"]
+      ],
+      body: reservations.map((r) => {
+        const row = [
+          formatTime(title.includes("Arrivée") ? r.start_date : r.end_date),
+          `${r.users?.first_name || ""} ${r.users?.last_name || ""}`,
+          r.users?.phone || "—",
+          `${formatVehicle(r.vehicle_type)} ${r.vehicle_brand || ""} ${r.vehicle_model || ""}`.trim(),
+          r.vehicle_plate || "—",
+        ];
+        if (title.includes("Arrivée")) {
+          row.push(r.return_flight_number || "—");
+        }
+        row.push(String(r.number_of_people || "1"));
+        row.push(
+          r.status === "confirmed"
+            ? "Confirmé"
+            : r.status === "pending"
+              ? "En attente"
+              : r.status
+        );
+        return row;
+      }),
       styles: { fontSize: 9 },
       headStyles: { fillColor: [14, 165, 233] },
     });
@@ -452,6 +466,11 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                         {formatVehicle(res.vehicle_type)}
                         {res.users?.phone && ` · ${res.users.phone}`}
                       </p>
+                      <p className="text-xs text-muted-foreground">
+                        {res.return_flight_number && `Vol retour: ${res.return_flight_number}`}
+                        {res.return_flight_number && res.number_of_people ? " · " : ""}
+                        {res.number_of_people && `${res.number_of_people} pers.`}
+                      </p>
                     </div>
                   </div>
                   <span
@@ -549,6 +568,11 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                         {formatVehicle(res.vehicle_type)}
                         {res.users?.phone && ` · ${res.users.phone}`}
                       </p>
+                      {res.number_of_people && (
+                        <p className="text-xs text-muted-foreground">
+                          {res.number_of_people} pers.
+                        </p>
+                      )}
                     </div>
                   </div>
                   <span
