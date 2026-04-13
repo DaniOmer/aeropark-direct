@@ -37,10 +37,12 @@ export default function Hero() {
             <div className="flex flex-wrap gap-3">
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3">
                 <span className="text-2xl font-extrabold text-cyan-300">
-                  4.8
+                  5/5
                 </span>
                 <span className="text-[11px] text-white/45 leading-tight">
-                  sur 5<br />1 450+ avis
+                  +200
+                  <br />
+                  avis
                 </span>
               </div>
               <div className="flex items-center gap-2.5 bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3">

@@ -58,11 +58,11 @@ export default function ReviewsSection() {
             </h2>
           </div>
           <div className="flex items-center gap-2.5">
-            <span className="text-3xl font-extrabold text-foreground">4.8</span>
+            <span className="text-3xl font-extrabold text-foreground">5/5</span>
             <div>
               <Stars size="small" />
               <p className="text-xs text-muted-foreground mt-0.5">
-                1 450+ avis
+                +200 avis
               </p>
             </div>
           </div>
