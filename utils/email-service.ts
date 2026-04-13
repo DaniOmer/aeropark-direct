@@ -333,6 +333,8 @@ export function generateReservationConfirmationEmail(reservation: any): string {
 
     <div style="background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%); border: 1px solid #a5f3fc; border-radius: 8px; padding: 20px; margin-top: 28px; text-align: center;">
       <p style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #0c1821;">Merci d'avoir choisi ParkAero Direct</p>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #64748b;">Adresse du parking :</p>
+      <p style="margin: 0 0 12px; font-size: 13px; font-weight: 500; color: #0c1821;">&#128205; 3 avenue Germaine, 91170 Viry-Ch\u00e2tillon</p>
       <p style="margin: 0 0 12px; font-size: 13px; color: #64748b;">Si vous avez des questions, n'h\u00e9sitez pas \u00e0 nous contacter :</p>
       <p style="margin: 0 0 4px; font-size: 13px; color: #0c1821;">&#128222; <a href="tel:0783829260" style="color: #0891b2; text-decoration: none; font-weight: 500;">07 83 82 92 60</a></p>
       <p style="margin: 0; font-size: 13px; color: #0c1821;">&#9993; <a href="mailto:aeroparkdirect@hotmail.com" style="color: #0891b2; text-decoration: none; font-weight: 500;">aeroparkdirect@hotmail.com</a></p>
@@ -340,4 +342,68 @@ export function generateReservationConfirmationEmail(reservation: any): string {
   `;
 
   return emailLayout("Confirmation de r\u00e9servation", content);
+}
+
+/**
+ * Generate HTML content for reservation update notification email
+ */
+export function generateReservationUpdateEmail(
+  reservation: any,
+  amountDueOnArrival: number
+): string {
+  const startDate = formatDate(reservation.start_date);
+  const endDate = formatDate(reservation.end_date);
+  const days = calculateDays(reservation.start_date, reservation.end_date);
+  const { html: optHtml, total: optTotal } = optionsBlock(reservation);
+
+  const surplusBlock =
+    amountDueOnArrival > 0
+      ? `
+    <div style="background-color: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; padding: 20px; margin-top: 24px; text-align: center;">
+      <p style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #854d0e;">Montant \u00e0 r\u00e9gler sur place</p>
+      <p style="margin: 0; font-size: 24px; font-weight: 700; color: #854d0e;">${amountDueOnArrival.toFixed(2)}\u00a0\u20ac</p>
+      <p style="margin: 8px 0 0; font-size: 13px; color: #92400e;">Ce montant correspond \u00e0 la diff\u00e9rence suite \u00e0 la modification de votre r\u00e9servation. Il sera \u00e0 r\u00e9gler \u00e0 votre arriv\u00e9e au parking.</p>
+    </div>
+  `
+      : "";
+
+  const content = `
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div style="display: inline-block; width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #06b6d4, #14b8a6); line-height: 56px; font-size: 24px; color: white; margin-bottom: 12px;">&#9998;</div>
+      <h2 style="margin: 0 0 4px; font-size: 20px; font-weight: 700; color: #0c1821;">R\u00e9servation modifi\u00e9e</h2>
+      <p style="margin: 8px 0 0; font-size: 14px; color: #64748b;">N\u00b0 <strong style="color: #0c1821; font-size: 16px;">${reservation.number || reservation.id.substring(0, 8)}</strong></p>
+    </div>
+
+    ${sectionTitle("Nouveaux d\u00e9tails de la r\u00e9servation")}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+      ${infoRow("Arriv\u00e9e", startDate)}
+      ${infoRow("D\u00e9part", endDate)}
+      ${infoRow("Dur\u00e9e", `${days} jour${days > 1 ? "s" : ""}`)}
+      ${infoRow("Parking", reservation.parking_lot.name)}
+      ${infoRow("Statut", statusBadge(reservation.status))}
+    </table>
+
+    ${sectionTitle("Votre v\u00e9hicule")}
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+      ${infoRow("Type", vehicleTypeLabel(reservation.vehicle_type))}
+      ${infoRow("Marque / Mod\u00e8le", `${reservation.vehicle_brand} ${reservation.vehicle_model}`)}
+      ${infoRow("Couleur", reservation.vehicle_color)}
+      ${infoRow("Immatriculation", `<strong>${reservation.vehicle_plate}</strong>`)}
+    </table>
+
+    ${optHtml}
+    ${priceSummary(reservation.total_price, optTotal)}
+    ${surplusBlock}
+
+    <div style="background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%); border: 1px solid #a5f3fc; border-radius: 8px; padding: 20px; margin-top: 28px; text-align: center;">
+      <p style="margin: 0 0 4px; font-size: 14px; font-weight: 600; color: #0c1821;">Merci d'avoir choisi ParkAero Direct</p>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #64748b;">Adresse du parking :</p>
+      <p style="margin: 0 0 12px; font-size: 13px; font-weight: 500; color: #0c1821;">&#128205; 3 avenue Germaine, 91170 Viry-Ch\u00e2tillon</p>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #64748b;">Si vous avez des questions, n'h\u00e9sitez pas \u00e0 nous contacter :</p>
+      <p style="margin: 0 0 4px; font-size: 13px; color: #0c1821;">&#128222; <a href="tel:0783829260" style="color: #0891b2; text-decoration: none; font-weight: 500;">07 83 82 92 60</a></p>
+      <p style="margin: 0; font-size: 13px; color: #0c1821;">&#9993; <a href="mailto:aeroparkdirect@hotmail.com" style="color: #0891b2; text-decoration: none; font-weight: 500;">aeroparkdirect@hotmail.com</a></p>
+    </div>
+  `;
+
+  return emailLayout("Modification de r\u00e9servation", content);
 }

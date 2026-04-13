@@ -12,6 +12,7 @@ import { useToastContext } from "@/components/providers/toast-provider";
 import {
   ReservationWithUserData,
   updateReservationStatus,
+  updateReservation,
   deleteReservation,
   createReservation,
   getAllUsers,
@@ -34,6 +35,7 @@ import ReservationDetailsModal, {
   getStatusLabel,
 } from "./reservation-details-modal";
 import { generateReservationsListPDF } from "@/utils/pdf-generator";
+import EditReservationModal from "./edit-reservation-modal";
 
 export default function ReservationsClientPage({
   initialReservations,
@@ -55,6 +57,9 @@ export default function ReservationsClientPage({
     useState<ReservationWithUserData | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editReservation, setEditReservation] =
+    useState<ReservationWithUserData | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [sortField, setSortField] =
@@ -225,6 +230,49 @@ export default function ReservationsClientPage({
     } finally {
       setIsDeleting(false);
       setDeleteConfirmId(null);
+    }
+  };
+
+  // Handle reservation edit
+  const openEditModal = (reservation: ReservationWithUserData) => {
+    setEditReservation(reservation);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditSave = async (id: string, data: Record<string, unknown>) => {
+    try {
+      const result = await updateReservation(id, data);
+      if (result.success) {
+        // Refresh the reservation in local state
+        const updated = await getReservationById(id);
+        if (updated) {
+          setReservations((prev) =>
+            prev.map((r) => (r.id === id ? (updated as ReservationWithUserData) : r))
+          );
+
+          // Send update email to the client
+          try {
+            await fetch("/api/reservation-update-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                reservationId: id,
+                amountDueOnArrival: result.amountDueOnArrival || 0,
+              }),
+            });
+          } catch (emailError) {
+            console.error("Error sending update email:", emailError);
+          }
+        }
+        addToast("Réservation modifiée avec succès", "success");
+      } else {
+        throw new Error(result.error || "Erreur lors de la modification");
+      }
+    } catch (error) {
+      console.error("Error updating reservation:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Une erreur est survenue";
+      addToast(errorMessage, "error");
     }
   };
 
@@ -684,6 +732,27 @@ export default function ReservationsClientPage({
                           <span className="hidden sm:inline">Détails</span>
                         </Button>
                         <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(reservation)}
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
+                          </svg>
+                          <span className="hidden sm:inline">Éditer</span>
+                        </Button>
+                        <Button
                           variant="destructive"
                           size="sm"
                           className="bg-red-600 hover:bg-red-700"
@@ -787,6 +856,17 @@ export default function ReservationsClientPage({
           </div>
         </div>
       )}
+
+      {/* Edit Reservation Modal */}
+      <EditReservationModal
+        reservation={editReservation}
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditReservation(null);
+        }}
+        onSave={handleEditSave}
+      />
 
       {/* Reservation Details Modal */}
       <ReservationDetailsModal

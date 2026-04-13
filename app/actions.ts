@@ -822,6 +822,7 @@ export type ReservationData = {
   number_of_people?: number;
   additional_people_fee?: number;
   late_fee?: number;
+  amount_due_on_arrival?: number;
   created_at?: string;
   updated_at?: string;
 };
@@ -1034,6 +1035,122 @@ export const updateReservationStatus = async (
   }
 
   return { success: true };
+};
+
+// Update a reservation's editable fields, recalculating price if dates change
+export const updateReservation = async (
+  id: string,
+  data: Partial<
+    Pick<
+      ReservationData,
+      | "start_date"
+      | "end_date"
+      | "vehicle_type"
+      | "vehicle_brand"
+      | "vehicle_model"
+      | "vehicle_color"
+      | "vehicle_plate"
+      | "status"
+      | "departure_flight_number"
+      | "return_flight_number"
+      | "number_of_people"
+    >
+  >
+): Promise<{
+  success: boolean;
+  error?: string;
+  newTotalPrice?: number;
+  amountDueOnArrival?: number;
+}> => {
+  const supabase = await createClient();
+
+  // Fetch the current reservation to compare
+  const { data: currentRes, error: fetchError } = await supabase
+    .from("reservations")
+    .select("*, parking_lot:parking_lot_id (id)")
+    .eq("id", id)
+    .single();
+
+  if (fetchError || !currentRes) {
+    return { success: false, error: "Réservation introuvable" };
+  }
+
+  const oldTotalPrice = currentRes.total_price;
+
+  // Determine final dates for price recalculation
+  const startDate = data.start_date || currentRes.start_date;
+  const endDate = data.end_date || currentRes.end_date;
+  const days = calculateDays(startDate, endDate);
+
+  // Get active price for the parking lot
+  const { data: priceData, error: priceError } = await supabase
+    .from("prices")
+    .select("*")
+    .eq("parking_lot_id", currentRes.parking_lot_id)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+
+  if (priceError || !priceData) {
+    return { success: false, error: "Tarif actif introuvable" };
+  }
+
+  // Recalculate base price from duration
+  const { price: durationPrice, error: durationError } =
+    await calculatePriceByDuration(days, priceData.id);
+
+  if (durationError) {
+    return { success: false, error: "Erreur calcul prix: " + durationError };
+  }
+
+  let newTotalPrice = durationPrice;
+
+  // Add options price (from existing reservation_options)
+  const { data: resOptions } = await supabase
+    .from("reservation_options")
+    .select("quantity, option:option_id (price)")
+    .eq("reservation_id", id);
+
+  if (resOptions) {
+    for (const ro of resOptions) {
+      const optPrice = (ro.option as any)?.price || 0;
+      newTotalPrice += optPrice * ro.quantity;
+    }
+  }
+
+  // Add people additional fee
+  const numberOfPeople = data.number_of_people || currentRes.number_of_people || 1;
+  if (numberOfPeople > (priceData.people_threshold || 4)) {
+    newTotalPrice +=
+      (priceData.additional_people_fee || 8.0) *
+      (numberOfPeople - (priceData.people_threshold || 4));
+  }
+
+  // Calculate amount due on arrival (only if new price is higher)
+  const amountDueOnArrival = Math.max(
+    0,
+    parseFloat((newTotalPrice - oldTotalPrice).toFixed(2))
+  );
+
+  // Build update payload
+  const updatePayload: Record<string, unknown> = {
+    ...data,
+    total_price: newTotalPrice,
+    amount_due_on_arrival: amountDueOnArrival,
+  };
+
+  const { error } = await supabase
+    .from("reservations")
+    .update(updatePayload)
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error updating reservation:", error);
+    return { success: false, error: error.message };
+  }
+
+  return { success: true, newTotalPrice, amountDueOnArrival };
 };
 
 // Record a payment for a reservation
