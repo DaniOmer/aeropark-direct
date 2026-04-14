@@ -1120,7 +1120,8 @@ export const updateReservation = async (
   }
 
   // Add people additional fee
-  const numberOfPeople = data.number_of_people || currentRes.number_of_people || 1;
+  const numberOfPeople =
+    data.number_of_people || currentRes.number_of_people || 1;
   if (numberOfPeople > (priceData.people_threshold || 4)) {
     newTotalPrice +=
       (priceData.additional_people_fee || 8.0) *
@@ -1364,6 +1365,87 @@ export const checkAvailability = async (
   };
 };
 
+// Return dates where parking is full for a given month and vehicle type
+export const getFullDays = async (
+  year: number,
+  month: number, // 1-indexed (1 = January)
+  vehicleType: string
+): Promise<string[]> => {
+  const supabase = await createClient();
+
+  // Get the active parking lot
+  const { data: parkingLot, error: parkingLotError } = await supabase
+    .from("parking_lots")
+    .select("*")
+    .eq("is_active", true)
+    .limit(1)
+    .single();
+
+  if (parkingLotError || !parkingLot) return [];
+
+  // Determine capacity for the vehicle type
+  const capacityMap: Record<string, string> = {
+    small_car: "capacity_small_cars",
+    large_car: "capacity_large_cars",
+    small_motorcycle: "capacity_small_motorcycles",
+    large_motorcycle: "capacity_large_motorcycles",
+  };
+
+  const capacityField = capacityMap[vehicleType];
+  if (!capacityField) return [];
+
+  const totalCapacity = parkingLot[capacityField] || 0;
+  if (totalCapacity === 0) {
+    // All days are full if capacity is 0
+    const daysInMonth = new Date(year, month, 0).getDate();
+    return Array.from({ length: daysInMonth }, (_, i) => {
+      const d = new Date(year, month - 1, i + 1);
+      return d.toISOString().split("T")[0];
+    });
+  }
+
+  // Month boundaries
+  const monthStart = `${year}-${String(month).padStart(2, "0")}-01T00:00:00`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const monthEnd = `${year}-${String(month).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}T23:59:59`;
+
+  // Fetch all reservations overlapping with this month
+  const { data: reservations, error: resError } = await supabase
+    .from("reservations")
+    .select("start_date, end_date")
+    .eq("parking_lot_id", parkingLot.id)
+    .eq("vehicle_type", vehicleType)
+    .in("status", ["confirmed", "pending"])
+    .lte("start_date", monthEnd)
+    .gte("end_date", monthStart);
+
+  if (resError || !reservations) return [];
+
+  // Count overlapping reservations per day
+  const fullDays: string[] = [];
+
+  for (let day = 1; day <= lastDay; day++) {
+    const dayStr = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const dayStart = new Date(`${dayStr}T00:00:00`);
+    const dayEnd = new Date(`${dayStr}T23:59:59`);
+
+    let count = 0;
+    for (const r of reservations) {
+      const rStart = new Date(r.start_date);
+      const rEnd = new Date(r.end_date);
+      if (rStart <= dayEnd && rEnd >= dayStart) {
+        count++;
+      }
+    }
+
+    if (count >= totalCapacity) {
+      fullDays.push(dayStr);
+    }
+  }
+
+  return fullDays;
+};
+
 // Check if there's enough capacity for a reservation
 export const checkCapacity = async (
   parkingLotId: string,
@@ -1434,7 +1516,8 @@ export const checkCapacity = async (
     .eq("parking_lot_id", parkingLotId)
     .eq("vehicle_type", vehicleType)
     .in("status", ["confirmed", "pending"]) // Consider both confirmed and pending reservations
-    .or(`start_date.lte.${endDate},end_date.gte.${startDate}`);
+    .lte("start_date", endDate)
+    .gte("end_date", startDate);
 
   // Exclude the current reservation if updating
   if (excludeReservationId) {

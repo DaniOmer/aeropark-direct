@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { checkAvailability } from "@/app/actions";
+import { checkAvailability, getFullDays } from "@/app/actions";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,25 @@ export default function ReservationForm() {
   const [error, setError] = useState<string | null>(null);
   const [startDateOpen, setStartDateOpen] = useState(false);
   const [endDateOpen, setEndDateOpen] = useState(false);
+  const [fullDays, setFullDays] = useState<Set<string>>(new Set());
+
+  const fetchFullDays = useCallback(
+    async (year: number, month: number) => {
+      const days = await getFullDays(year, month, vehicleType);
+      setFullDays(new Set(days));
+    },
+    [vehicleType]
+  );
+
+  useEffect(() => {
+    const now = new Date();
+    fetchFullDays(now.getFullYear(), now.getMonth() + 1);
+  }, [fetchFullDays]);
+
+  const isDateFull = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return fullDays.has(dateStr);
+  };
 
   const generateTimeOptions = (intervalMinutes: number) => {
     const options = [];
@@ -51,8 +70,31 @@ export default function ReservationForm() {
     return options;
   };
 
-  const arrivalTimeOptions = generateTimeOptions(30);
-  const departureTimeOptions = generateTimeOptions(5);
+  const allArrivalTimeOptions = generateTimeOptions(30);
+  const allDepartureTimeOptions = generateTimeOptions(5);
+
+  const isToday = (date: Date | undefined) => {
+    if (!date) return false;
+    const now = new Date();
+    return (
+      date.getFullYear() === now.getFullYear() &&
+      date.getMonth() === now.getMonth() &&
+      date.getDate() === now.getDate()
+    );
+  };
+
+  const filterPastTimes = (options: { value: string; label: string }[], date: Date | undefined) => {
+    if (!date || !isToday(date)) return options;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    return options.filter((opt) => {
+      const [h, m] = opt.value.split(":").map(Number);
+      return h * 60 + m > currentMinutes;
+    });
+  };
+
+  const arrivalTimeOptions = filterPastTimes(allArrivalTimeOptions, startDate);
+  const departureTimeOptions = filterPastTimes(allDepartureTimeOptions, endDate);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,9 +207,22 @@ export default function ReservationForm() {
                   onSelect={(date) => {
                     setStartDate(date);
                     setStartDateOpen(false);
+                    // Reset start time if it's now in the past
+                    if (date && isToday(date) && startTime) {
+                      const now = new Date();
+                      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                      const [h, m] = startTime.split(":").map(Number);
+                      if (h * 60 + m <= currentMinutes) setStartTime("");
+                    }
+                  }}
+                  onMonthChange={(month) => {
+                    fetchFullDays(month.getFullYear(), month.getMonth() + 1);
                   }}
                   locale={fr}
-                  disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  disabled={(date) =>
+                    date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                    isDateFull(date)
+                  }
                 />
               </PopoverContent>
             </Popover>
@@ -214,10 +269,20 @@ export default function ReservationForm() {
                   onSelect={(date) => {
                     setEndDate(date);
                     setEndDateOpen(false);
+                    if (date && isToday(date) && endTime) {
+                      const now = new Date();
+                      const currentMinutes = now.getHours() * 60 + now.getMinutes();
+                      const [h, m] = endTime.split(":").map(Number);
+                      if (h * 60 + m <= currentMinutes) setEndTime("");
+                    }
+                  }}
+                  onMonthChange={(month) => {
+                    fetchFullDays(month.getFullYear(), month.getMonth() + 1);
                   }}
                   locale={fr}
                   disabled={(date) =>
-                    date < (startDate || new Date(new Date().setHours(0, 0, 0, 0)))
+                    date < (startDate || new Date(new Date().setHours(0, 0, 0, 0))) ||
+                    isDateFull(date)
                   }
                 />
               </PopoverContent>
