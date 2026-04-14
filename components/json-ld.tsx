@@ -1,14 +1,18 @@
 export default function JsonLd() {
+  const baseUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "https://www.aeroparkdirect.com";
+
   const structuredData = {
     "@context": "https://schema.org",
     "@graph": [
       {
         "@type": ["LocalBusiness", "ParkingFacility"],
-        "@id": "https://www.aeroparkdirect.com/#business",
+        "@id": `${baseUrl}/#business`,
         name: "ParkAero Direct",
         description:
           "Parking sécurisé à proximité de l'aéroport d'Orly avec navette gratuite 24h/24 et 7j/7.",
-        url: "https://www.aeroparkdirect.com",
+        url: baseUrl,
         telephone: "+33783829260",
         email: "aeroparkdirect@hotmail.com",
         address: {
@@ -75,12 +79,12 @@ export default function JsonLd() {
       },
       {
         "@type": "WebSite",
-        "@id": "https://www.aeroparkdirect.com/#website",
-        url: "https://www.aeroparkdirect.com",
+        "@id": `${baseUrl}/#website`,
+        url: baseUrl,
         name: "ParkAero Direct",
         inLanguage: "fr-FR",
         publisher: {
-          "@id": "https://www.aeroparkdirect.com/#business",
+          "@id": `${baseUrl}/#business`,
         },
       },
     ],
