@@ -94,7 +94,7 @@ function downloadPDF(reservations: Reservation[], title: string) {
       ],
       body: reservations.map((r) => {
         const row = [
-          formatTime(title.includes("Arrivée") ? r.start_date : r.end_date),
+          formatTime(title.includes("Arrivée") ? r.end_date : r.start_date),
           `${r.users?.first_name || ""} ${r.users?.last_name || ""}`,
           r.users?.phone || "—",
           `${formatVehicle(r.vehicle_type)} ${r.vehicle_brand || ""} ${r.vehicle_model || ""}`.trim(),
