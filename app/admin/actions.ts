@@ -28,21 +28,23 @@ export async function getDayReservations(dateStr: string): Promise<{
 }> {
   const supabase = await createClient();
 
-  const { data: arrivals } = await supabase
+  const { data: arrivals, error: arrivalsError } = await supabase
     .from("reservations")
     .select("*, users!inner(first_name, last_name, email, phone)")
     .gte("start_date", `${dateStr}T00:00:00`)
     .lt("start_date", `${dateStr}T23:59:59`)
     .in("status", ["confirmed", "pending"])
     .order("start_date", { ascending: true });
+  if (arrivalsError) console.error("getDayReservations arrivals error:", arrivalsError);
 
-  const { data: departures } = await supabase
+  const { data: departures, error: departuresError } = await supabase
     .from("reservations")
     .select("*, users!inner(first_name, last_name, email, phone)")
     .gte("end_date", `${dateStr}T00:00:00`)
     .lt("end_date", `${dateStr}T23:59:59`)
     .in("status", ["confirmed", "completed"])
     .order("end_date", { ascending: true });
+  if (departuresError) console.error("getDayReservations departures error:", departuresError);
 
   return {
     arrivals: (arrivals || []) as DayReservation[],
