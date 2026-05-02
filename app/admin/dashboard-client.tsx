@@ -53,17 +53,17 @@ function formatVehicle(type: string) {
 
 function downloadPDF(
   reservations: Reservation[],
-  kind: "arrivals" | "departures",
+  kind: "returns" | "departures",
   date: Date
 ) {
   const doc = new jsPDF();
-  const isArrival = kind === "arrivals";
+  const isReturn = kind === "returns";
   const longDate = date.toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
-  const title = isArrival ? `Arrivées du ${longDate}` : `Départs du ${longDate}`;
+  const title = isReturn ? `Retours du ${longDate}` : `Départs du ${longDate}`;
 
   doc.setFontSize(16);
   doc.text(`ParkAero Direct — ${title}`, 14, 20);
@@ -79,19 +79,19 @@ function downloadPDF(
     autoTable(doc, {
       startY: 35,
       head: [
-        isArrival
+        isReturn
           ? ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Vol retour", "Pers.", "Statut"]
           : ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Pers.", "Statut"],
       ],
       body: reservations.map((r) => {
         const row = [
-          formatTime(isArrival ? r.end_date : r.start_date),
+          formatTime(isReturn ? r.end_date : r.start_date),
           `${r.users?.first_name || ""} ${r.users?.last_name || ""}`,
           r.users?.phone || "—",
           `${formatVehicle(r.vehicle_type)} ${r.vehicle_brand || ""} ${r.vehicle_model || ""}`.trim(),
           r.vehicle_plate || "—",
         ];
-        if (isArrival) {
+        if (isReturn) {
           row.push(r.return_flight_number || "—");
         }
         row.push(String(r.number_of_people || "1"));
@@ -109,7 +109,7 @@ function downloadPDF(
     });
   }
 
-  const filePrefix = isArrival ? "arrivees" : "departs";
+  const filePrefix = isReturn ? "retours" : "departs";
   doc.save(`${filePrefix}-${toDateStr(date)}.pdf`);
 }
 
@@ -546,20 +546,20 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Departures */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        {/* Retours (clients picking up cars / coming back from flights) */}
+        <div className="bg-card rounded-2xl border border-border overflow-hidden order-2">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
               <h2 className="text-sm font-bold text-foreground capitalize">
-                {isToday ? "Arrivées aujourd'hui" : `Arrivées du ${formatShortDate(selectedDate)}`}
+                {isToday ? "Retours aujourd'hui" : `Retours du ${formatShortDate(selectedDate)}`}
               </h2>
               <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5 rounded-full">
                 {departures.length}
               </span>
             </div>
             <button
-              onClick={() => downloadPDF(departures, "arrivals", selectedDate)}
+              onClick={() => downloadPDF(departures, "returns", selectedDate)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-secondary"
               title="Télécharger PDF"
             >
@@ -600,7 +600,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 </svg>
               </div>
               <p className="text-sm text-muted-foreground">
-                Aucune arrivée prévue
+                Aucun retour prévu
               </p>
             </div>
           ) : (
@@ -652,8 +652,8 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           )}
         </div>
 
-        {/* Arrivals */}
-        <div className="bg-card rounded-2xl border border-border overflow-hidden">
+        {/* Departures (clients dropping off cars / taking flights) */}
+        <div className="bg-card rounded-2xl border border-border overflow-hidden order-1">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
