@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -15,6 +15,7 @@ import {
   Legend,
 } from "recharts";
 import type { DayReservation } from "./actions";
+import { getDayReservations } from "./actions";
 
 type Reservation = DayReservation;
 
@@ -104,6 +105,41 @@ function downloadPDF(reservations: Reservation[], title: string) {
   doc.save(
     `${title.toLowerCase().replace(/\s/g, "-")}-${new Date().toISOString().split("T")[0]}.pdf`
   );
+}
+
+function toDateStr(date: Date): string {
+  // Local YYYY-MM-DD (avoids UTC shift around midnight).
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return toDateStr(a) === toDateStr(b);
+}
+
+function addDays(date: Date, days: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function formatLongDate(date: Date): string {
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatShortDate(date: Date): string {
+  // e.g. "5 mai"
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+  });
 }
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
