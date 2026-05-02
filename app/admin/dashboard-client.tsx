@@ -51,19 +51,25 @@ function formatVehicle(type: string) {
   return type === "small_car" ? "Voiture" : "Moto";
 }
 
-function downloadPDF(reservations: Reservation[], title: string) {
+function downloadPDF(
+  reservations: Reservation[],
+  kind: "arrivals" | "departures",
+  date: Date
+) {
   const doc = new jsPDF();
-  const today = new Date().toLocaleDateString("fr-FR", {
+  const isArrival = kind === "arrivals";
+  const longDate = date.toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
+  const title = isArrival ? `Arrivées du ${longDate}` : `Départs du ${longDate}`;
 
   doc.setFontSize(16);
   doc.text(`ParkAero Direct — ${title}`, 14, 20);
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(today, 14, 28);
+  doc.text(longDate, 14, 28);
 
   if (reservations.length === 0) {
     doc.setFontSize(12);
@@ -72,19 +78,20 @@ function downloadPDF(reservations: Reservation[], title: string) {
   } else {
     autoTable(doc, {
       startY: 35,
-      head: [title.includes("Arrivée")
-        ? ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Vol retour", "Pers.", "Statut"]
-        : ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Pers.", "Statut"]
+      head: [
+        isArrival
+          ? ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Vol retour", "Pers.", "Statut"]
+          : ["Heure", "Client", "Téléphone", "Véhicule", "Plaque", "Pers.", "Statut"],
       ],
       body: reservations.map((r) => {
         const row = [
-          formatTime(title.includes("Arrivée") ? r.end_date : r.start_date),
+          formatTime(isArrival ? r.end_date : r.start_date),
           `${r.users?.first_name || ""} ${r.users?.last_name || ""}`,
           r.users?.phone || "—",
           `${formatVehicle(r.vehicle_type)} ${r.vehicle_brand || ""} ${r.vehicle_model || ""}`.trim(),
           r.vehicle_plate || "—",
         ];
-        if (title.includes("Arrivée")) {
+        if (isArrival) {
           row.push(r.return_flight_number || "—");
         }
         row.push(String(r.number_of_people || "1"));
@@ -102,9 +109,8 @@ function downloadPDF(reservations: Reservation[], title: string) {
     });
   }
 
-  doc.save(
-    `${title.toLowerCase().replace(/\s/g, "-")}-${new Date().toISOString().split("T")[0]}.pdf`
-  );
+  const filePrefix = isArrival ? "arrivees" : "departs";
+  doc.save(`${filePrefix}-${toDateStr(date)}.pdf`);
 }
 
 function toDateStr(date: Date): string {
@@ -529,17 +535,15 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-              <h2 className="text-sm font-bold text-foreground">
-                Arrivées aujourd&apos;hui
+              <h2 className="text-sm font-bold text-foreground capitalize">
+                {isToday ? "Arrivées aujourd'hui" : `Arrivées du ${formatShortDate(selectedDate)}`}
               </h2>
               <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5 rounded-full">
                 {departures.length}
               </span>
             </div>
             <button
-              onClick={() =>
-                downloadPDF(data.todayDepartures, "Arrivées du jour")
-              }
+              onClick={() => downloadPDF(departures, "arrivals", selectedDate)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-secondary"
               title="Télécharger PDF"
             >
@@ -637,15 +641,15 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
-              <h2 className="text-sm font-bold text-foreground">
-                Départs aujourd&apos;hui
+              <h2 className="text-sm font-bold text-foreground capitalize">
+                {isToday ? "Départs aujourd'hui" : `Départs du ${formatShortDate(selectedDate)}`}
               </h2>
               <span className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold px-2 py-0.5 rounded-full">
                 {arrivals.length}
               </span>
             </div>
             <button
-              onClick={() => downloadPDF(data.todayArrivals, "Départs du jour")}
+              onClick={() => downloadPDF(arrivals, "departures", selectedDate)}
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-1 rounded-lg hover:bg-secondary"
               title="Télécharger PDF"
             >
