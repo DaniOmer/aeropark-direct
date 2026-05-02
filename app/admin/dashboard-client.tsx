@@ -142,6 +142,84 @@ function formatShortDate(date: Date): string {
   });
 }
 
+function DayNavigator({
+  date,
+  onPrev,
+  onNext,
+  onToday,
+  isToday,
+  isLoading,
+}: {
+  date: Date;
+  onPrev: () => void;
+  onNext: () => void;
+  onToday: () => void;
+  isToday: boolean;
+  isLoading: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-center gap-3 bg-card rounded-2xl border border-border px-4 py-3">
+      <button
+        onClick={onPrev}
+        disabled={isLoading}
+        className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        aria-label="Jour précédent"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
+
+      <p className="text-sm font-bold text-foreground capitalize min-w-[14rem] text-center">
+        {formatLongDate(date)}
+      </p>
+
+      <button
+        onClick={onNext}
+        disabled={isLoading}
+        className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        aria-label="Jour suivant"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-4 w-4"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 5l7 7-7 7"
+          />
+        </svg>
+      </button>
+
+      {!isToday && (
+        <button
+          onClick={onToday}
+          disabled={isLoading}
+          className="ml-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
+        >
+          Aujourd&apos;hui
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function DashboardClient({ data }: { data: DashboardData }) {
   const occupancyPercent =
     data.totalCapacity > 0
