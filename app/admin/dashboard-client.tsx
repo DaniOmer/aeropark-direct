@@ -140,6 +140,16 @@ function formatLongDate(date: Date): string {
   });
 }
 
+function formatMediumDate(date: Date): string {
+  // e.g. "Ven. 2 mai 2026" — used on small screens.
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function formatShortDate(date: Date): string {
   // e.g. "5 mai"
   return date.toLocaleDateString("fr-FR", {
@@ -164,11 +174,11 @@ function DayNavigator({
   isLoading: boolean;
 }) {
   return (
-    <div className="flex items-center justify-center gap-3 bg-card rounded-2xl border border-border px-4 py-3">
+    <div className="flex items-center justify-center gap-2 sm:gap-3 bg-card rounded-2xl border border-border px-3 sm:px-4 py-3">
       <button
         onClick={onPrev}
         disabled={isLoading}
-        className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Jour précédent"
       >
         <svg
@@ -187,14 +197,15 @@ function DayNavigator({
         </svg>
       </button>
 
-      <p className="text-sm font-bold text-foreground capitalize min-w-[14rem] text-center">
-        {formatLongDate(date)}
+      <p className="text-xs sm:text-sm font-bold text-foreground capitalize text-center sm:min-w-[14rem] flex-1 sm:flex-initial">
+        <span className="sm:hidden">{formatMediumDate(date)}</span>
+        <span className="hidden sm:inline">{formatLongDate(date)}</span>
       </p>
 
       <button
         onClick={onNext}
         disabled={isLoading}
-        className="w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+        className="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center hover:bg-secondary disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         aria-label="Jour suivant"
       >
         <svg
@@ -217,9 +228,14 @@ function DayNavigator({
         <button
           onClick={onToday}
           disabled={isLoading}
-          className="ml-2 text-xs font-semibold px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="shrink-0 sm:ml-2 text-xs font-semibold px-2.5 sm:px-3 py-1.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
-          Aujourd&apos;hui
+          <span className="sm:hidden" aria-label="Aujourd'hui">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M5 6h14a2 2 0 012 2v11a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2zm3-4v4m8-4v4" />
+            </svg>
+          </span>
+          <span className="hidden sm:inline">Aujourd&apos;hui</span>
         </button>
       )}
     </div>
