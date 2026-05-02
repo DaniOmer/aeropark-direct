@@ -226,6 +226,38 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
       ? Math.round((data.currentlyParked / data.totalCapacity) * 100)
       : 0;
 
+  const today = new Date();
+  const [selectedDate, setSelectedDate] = useState<Date>(today);
+  const [arrivals, setArrivals] = useState<Reservation[]>(data.todayArrivals);
+  const [departures, setDepartures] = useState<Reservation[]>(
+    data.todayDepartures
+  );
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isToday = isSameDay(selectedDate, today);
+
+  const loadDay = useCallback(async (date: Date) => {
+    setIsLoading(true);
+    try {
+      const { arrivals: a, departures: d } = await getDayReservations(
+        toDateStr(date)
+      );
+      setArrivals(a);
+      setDepartures(d);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isSameDay(selectedDate, new Date())) return;
+    loadDay(selectedDate);
+  }, [selectedDate, loadDay]);
+
+  const goPrev = () => setSelectedDate((d) => addDays(d, -1));
+  const goNext = () => setSelectedDate((d) => addDays(d, 1));
+  const goToday = () => setSelectedDate(new Date());
+
   return (
     <div className="p-6 md:p-8 space-y-8">
       {/* Header */}
@@ -480,6 +512,15 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
         </div>
       </div>
 
+      <DayNavigator
+        date={selectedDate}
+        onPrev={goPrev}
+        onNext={goNext}
+        onToday={goToday}
+        isToday={isToday}
+        isLoading={isLoading}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Departures */}
         <div className="bg-card rounded-2xl border border-border overflow-hidden">
@@ -490,7 +531,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 Arrivées aujourd&apos;hui
               </h2>
               <span className="text-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5 rounded-full">
-                {data.todayDepartures.length}
+                {departures.length}
               </span>
             </div>
             <button
@@ -518,7 +559,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             </button>
           </div>
 
-          {data.todayDepartures.length === 0 ? (
+          {departures.length === 0 ? (
             <div className="p-10 text-center">
               <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg
@@ -541,8 +582,12 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border max-h-80 overflow-y-auto">
-              {data.todayDepartures.map((res) => (
+            <div
+  className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
+    isLoading ? "opacity-50" : "opacity-100"
+  }`}
+>
+              {departures.map((res) => (
                 <Link
                   key={res.id}
                   href={`/admin/reservations?search=${res.number || res.id.substring(0, 8)}`}
@@ -594,7 +639,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                 Départs aujourd&apos;hui
               </h2>
               <span className="text-xs bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold px-2 py-0.5 rounded-full">
-                {data.todayArrivals.length}
+                {arrivals.length}
               </span>
             </div>
             <button
@@ -620,7 +665,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             </button>
           </div>
 
-          {data.todayArrivals.length === 0 ? (
+          {arrivals.length === 0 ? (
             <div className="p-10 text-center">
               <div className="w-12 h-12 bg-secondary rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg
@@ -643,8 +688,12 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-border max-h-80 overflow-y-auto">
-              {data.todayArrivals.map((res) => (
+            <div
+  className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
+    isLoading ? "opacity-50" : "opacity-100"
+  }`}
+>
+              {arrivals.map((res) => (
                 <Link
                   key={res.id}
                   href={`/admin/reservations?search=${res.number || res.id.substring(0, 8)}`}
