@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -236,23 +236,25 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
 
   const isToday = isSameDay(selectedDate, today);
 
-  const loadDay = useCallback(async (date: Date) => {
-    setIsLoading(true);
-    try {
-      const { arrivals: a, departures: d } = await getDayReservations(
-        toDateStr(date)
-      );
-      setArrivals(a);
-      setDepartures(d);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    if (isSameDay(selectedDate, new Date())) return;
-    loadDay(selectedDate);
-  }, [selectedDate, loadDay]);
+    let cancelled = false;
+    setIsLoading(true);
+    getDayReservations(toDateStr(selectedDate))
+      .then(({ arrivals: a, departures: d }) => {
+        if (cancelled) return;
+        setArrivals(a);
+        setDepartures(d);
+      })
+      .catch((err) => {
+        console.error("Failed to load day reservations", err);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
 
   const goPrev = () => setSelectedDate((d) => addDays(d, -1));
   const goNext = () => setSelectedDate((d) => addDays(d, 1));
@@ -583,10 +585,10 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             </div>
           ) : (
             <div
-  className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
-    isLoading ? "opacity-50" : "opacity-100"
-  }`}
->
+              className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
+                isLoading ? "opacity-50" : "opacity-100"
+              }`}
+            >
               {departures.map((res) => (
                 <Link
                   key={res.id}
@@ -689,10 +691,10 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
             </div>
           ) : (
             <div
-  className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
-    isLoading ? "opacity-50" : "opacity-100"
-  }`}
->
+              className={`divide-y divide-border max-h-80 overflow-y-auto transition-opacity ${
+                isLoading ? "opacity-50" : "opacity-100"
+              }`}
+            >
               {arrivals.map((res) => (
                 <Link
                   key={res.id}
