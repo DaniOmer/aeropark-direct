@@ -14,26 +14,9 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import type { DayReservation } from "./actions";
 
-type Reservation = {
-  id: string;
-  start_date: string;
-  end_date: string;
-  vehicle_type: string;
-  vehicle_plate: string;
-  vehicle_brand: string;
-  vehicle_model: string;
-  status: string;
-  number: string;
-  return_flight_number: string | null;
-  number_of_people: number | null;
-  users: {
-    first_name: string;
-    last_name: string;
-    email: string;
-    phone: string;
-  };
-};
+type Reservation = DayReservation;
 
 type MonthlyData = {
   month: string;
